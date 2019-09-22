@@ -11,10 +11,29 @@
 //canvas.width = window.innerWidth;
 //canvas.height = window.innerHeight;
 
+
+
 var canvas = document.getElementById("piirtoAlue");
 var cellsize = 16;
 var cols = 72;
 var rows = 42;
+
+//Trows= document.getElementById("formRows");
+//Trows = document.getElementsByName("rows");
+ 
+if( document.getElementById("Trows") ) {
+    rows = document.getElementById("Trows").value;
+}
+if( document.getElementById("Trows") ) {
+    cols = document.getElementById("Tcols").value;
+}
+
+
+console.log(cols + "   " + rows );
+//var options = document.getElementById("gameOptions");
+//console.log(options);
+
+
 
 // canvas.height = 400;
 // canvas.width = 800;
@@ -31,41 +50,67 @@ var imgB = document.getElementById("blue");
 var field = [];
 
 //sisalto.fillRect( 100, 100, 100, 100);
+initField();
+fillField();
 
-for( y = 0; y < rows; y++ ){
-    let _row = "";
-    for( x = 0; x < cols; x++ ) {
-        _row += Math.floor( Math.random() * 2 ).toString();
-    }
-    field[y] = _row;
-}
-
-
-//console.log( Math.floor( Math.random() * 2 ) );
-//init draw
-for( y = 0; y < rows; y++ ){
-    let _row = field[y];
-    //console.log( _row );
-    for( x = 0; x < cols; x++ ) {
-        //let _char = _row.slice( x,x+1 );
-        let _char = _row.charAt( x );
-        if( _char == "0") sisalto.drawImage( imgO, x*cellsize, y*cellsize);
-        if( _char == "1") sisalto.drawImage( imgB, x*cellsize, y*cellsize);
-    }
-}
 sisalto.save();
 
 //var _interval;
 
 canvas.addEventListener("mousedown", mouseDown );
 canvas.addEventListener("mouseup", mouseUp );
-canvas.addEventListener("contextmenu", mouseDown );
+canvas.addEventListener("contextmenu", blockRBMMenu );
 
-nakki = "nakki";
-nakki = replaceAt( nakki, 0, "A");
-console.log(nakki);
+//setInterval( refTest, 50 );
 
+function refTest() {
+    initField();
+    fillField();
+}
 
+function newGame() {
+    if( document.getElementById("Trows") ) {
+        rows = document.getElementById("Trows").value;
+    }
+    if( document.getElementById("Trows") ) {
+        cols = document.getElementById("Tcols").value;
+    }
+    canvas.height = cellsize * rows;
+    canvas.width = cellsize * cols;
+    initField();
+    fillField();
+}
+
+function initField() {
+    field = [];
+    for( y = 0; y < rows; y++ ){
+        let _row = "";
+        for( x = 0; x < cols; x++ ) {
+            _row += Math.floor( Math.random() * 2 ).toString();
+        }
+        field[y] = _row;
+    }
+}
+
+function fillField() {
+    for( y = 0; y < rows; y++ ){
+        let _row = field[y];
+        //console.log( _row );
+        for( x = 0; x < cols; x++ ) {
+            //let _char = _row.slice( x,x+1 );
+            let _char = _row.charAt( x );
+            if( _char == "0") sisalto.drawImage( imgO, x*cellsize, y*cellsize);
+            if( _char == "1") sisalto.drawImage( imgB, x*cellsize, y*cellsize);
+        }
+    }
+}
+
+function blockRBMMenu() {
+    if( event.button == 2) {
+        event.preventDefault();
+        event.stopPropagation();    //https://developer.mozilla.org/en-US/docs/Web/API/Event/stopPropagation
+    }
+}
 function replaceAt( _string, location, character ) {
     let len = _string.length;
     location++; //using this that index 0 is first and start wont flip whole string
@@ -75,10 +120,7 @@ function replaceAt( _string, location, character ) {
 }
 
 function mouseDown(event) {
-    if( event.button == 2) {    //BUG WITH THIS!!
-        event.preventDefault();
-        event.stopPropagation();    //https://developer.mozilla.org/en-US/docs/Web/API/Event/stopPropagation
-    }
+
     var pos = getMousePos(canvas, event)
     mouse.x = pos.x,
     mouse.y = pos.y;
