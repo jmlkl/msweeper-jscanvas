@@ -46,9 +46,17 @@ var itemCount = Math.floor( cols*rows*itemRatio /100);
 
 
 var sisalto = canvas.getContext("2d");
-var imgO = document.getElementById("orange");
-var imgB = document.getElementById("blue");
-var imgBfull = document.getElementById("fullblue");
+
+//Images
+var imgO = document.getElementById("orange"); //Not used
+var imgB = document.getElementById("blue");     //Not used
+var imgBfull = document.getElementById("fullblue"); //RENAME
+
+var minetrackerId = document.getElementById("mineCount");
+var timetrackerId = document.getElementById("timeElapsed");
+
+
+
 
 var fullPicTilesX = 4;
 var fullPicTilesY = 4;
@@ -59,6 +67,15 @@ const fieldChars = ".12345678#+*OX?P"; //+ hold down cell, O found mine that end
 
 var field = []; //used for placing mines
 var adjacency = []; //used for drawing canvas (current state)
+
+var state = 0;
+
+var timeStart = 0;
+var flagCount = 0;
+var explodedCount = 0;
+
+var historyCelly = -1;
+var historyCellx = -1;
 
 //sisalto.fillRect( 100, 100, 100, 100);
 // initField();
@@ -72,14 +89,32 @@ sisalto.save();
 
 canvas.addEventListener("mousedown", mouseDown );
 canvas.addEventListener("mouseup", mouseUp );
+canvas.addEventListener("mousemove", mouseMove );
 canvas.addEventListener("contextmenu", blockRMBMenu );
-
+canvas.addEventListener("mouseleave", mouseLeave );
 //paivitysdemo
 //setInterval( refTest, 100 );
+
+
+
+var checkThings = setInterval( updateUI, 250);
 
 function refTest() {
     newGame();
 }
+
+function updateUI(){ //TODO Rename!
+    if( flagCount == itemCount ) {
+        //additional check that are those right
+    }
+    let mines = itemCount -(flagCount +explodedCount);
+    let timeElapsed = 0;    //TODO needs to be global, for history tracking!
+    if( timeStart != 0) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
+    minetrackerId.innerHTML = mines;
+    timetrackerId.innerHTML = timeElapsed;
+    
+}
+
 
 function newGame() {
     if( document.getElementById("Trows") ) {
@@ -94,6 +129,8 @@ function newGame() {
     itemCount = Math.floor( cols*rows*itemRatio /100);
     
     initField();
+
+    //STUFF BELOW SHOULD BE DONE AFTER INITIAL CLICK (SAFE START & TIMER RESET)
     placeMines();
     //adjacencyFull();
     drawCanvasField();
@@ -102,6 +139,17 @@ function newGame() {
     for( y = 0; y < rows; y++ ) {
         console.log(field[y]);
     }
+
+    clearInterval( checkThings );
+    checkThings = setInterval( updateUI, 250);
+    
+
+    //game related variables
+    flagCount = 0;
+    explodedCount = 0;
+    timeStart = Date.now();
+    historyCelly = -1;
+    historyCellx = -1;
 }
 
 function Cheat() {
@@ -157,8 +205,8 @@ function adjacencyCell( y, x) {
 
     for( let cy = -1; cy < 2; cy++) {
         for( let cx = -1; cx < 2; cx++) {
-            if( field[y].charAt( x ) == "B") {
-                _adjCount = 0xB;
+            if( field[y].charAt( x ) == "B") {  //KABOOM
+                _adjCount = "C";                
             } else if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                 if( x+cx >=0 && x+cx < cols ) {
                     //if( grid[ y+cy, x+cx] ) _adjCount++;
@@ -172,11 +220,55 @@ function adjacencyCell( y, x) {
 
 
 function clickCell( y, x ) {
-    if( adjacency[y].charAt(x)=="9") {
-        console.log("HIDDEN STUFF!");
+    let _value = adjacency[y].charAt(x);
+    if( _value=="9" || _value=="A") {
         var _adj = adjacencyCell( y, x);
+        //console.log( "ADJ:"+_adj );
         adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
         drawCanvasCell( y, x);
+        if( _adj == 0 ) { //when finding empty continue opening path until finding cell that touches mine
+            for( let cy = -1; cy < 2; cy++) {
+                for( let cx = -1; cx < 2; cx++) {
+                    if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
+                        if( x+cx >=0 && x+cx < cols ) {
+                            clickCell( y+cy, x+cx );
+                        }
+                    }
+                }
+            }
+        } else if( _adj == "C") {  //Actual bomb action
+            explodedCount++;
+            console.log(explodedCount);
+        }
+    }
+}
+
+function flagCell( y , x ) {
+    let cellValue = adjacency[y].charAt(x);
+    if( cellValue == "9" ) {
+        //console.log("9->F");
+        adjacency[y] = replaceAt( adjacency[y], x, "F"); //FIXME Hardcoded value
+        flagCount++;
+    } else if( cellValue == "F") {
+        //console.log("F->9");
+        adjacency[y] = replaceAt( adjacency[y], x, "9"); //FIXME Hardcoded value
+        flagCount--;
+    }
+    drawCanvasCell( y, x);
+}
+
+function holdCell( y, x ) {
+    let cellValue = adjacency[y].charAt(x);
+    if( cellValue == "9" ) {
+        adjacency[y] = replaceAt( adjacency[y], x, "A"); //FIXME Hardcoded value
+    }
+}
+
+function releaseCell( y, x) {
+    console.log( "RELEASE @ " + y + " x " + x );
+    let cellValue = adjacency[y].charAt(x);
+    if( cellValue == "A" ) {
+        adjacency[y] = replaceAt( adjacency[y], x, "9"); //FIXME Hardcoded value
     }
 }
 
@@ -195,9 +287,17 @@ function drawCanvasCell( y, x ) {
             //other tiles (bomb, flag...)
             //TODO Structure this properly
             case "A":
+                sisalto.drawImage( imgBfull, 2*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+            break;
             case "B":
-            default:
                 sisalto.drawImage( imgBfull, 3*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+            break;
+            case "C":
+                sisalto.drawImage( imgBfull, 0*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+            break;
+            case "F":
+            default:
+                sisalto.drawImage( imgBfull, 3*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
         }
     }
@@ -209,9 +309,7 @@ function drawCanvasField() {
         //let _row = adjacency[y];  //OFF NOW
 
         for( x = 0; x < cols; x++ ) {
-
             drawCanvasCell( y, x);
-
         }
     }
 }
@@ -230,21 +328,75 @@ function replaceAt( _string, location, character ) {
     return _string;
 }
 
+function mouseLeave() { //TODO add some time based thing how long mouse need to be out of element before it resets state, makes playing much nicer when user errors are allowed!
+    if( state != 0 ) {
+        state = 0;
+        releaseCell( historyCelly, historyCellx);
+        drawCanvasCell( historyCelly, historyCellx);
+        historyCelly = -1;
+        historyCellx = -1;
+        console.log("STATE RESET!");
+    }
+}
+
 function mouseDown(event) {
 
-    var pos = getMousePos(canvas, event)
-    mouse.x = pos.x,
-    mouse.y = pos.y;
+    if( state == 0 && event.button == 0 ) {
+        var pos = getMousePos(canvas, event)
+        mouse.x = pos.x,
+        mouse.y = pos.y;
 
-    var pos = getMousePos(canvas, event)
-    celly = Math.floor( mouse.y / cellsize);
-    cellx = Math.floor( mouse.x / cellsize);
-    //console.log(mouse);
-    //console.log("y:" + celly + " x:" + cellx);
+        var pos = getMousePos(canvas, event)
+        celly = Math.floor( mouse.y / cellsize);
+        cellx = Math.floor( mouse.x / cellsize);
 
-    //mouseTimer = window.setTimeout(execMouseDown(celly, cellx),10);
-    //interval_ = setInterval( DrawCell(celly, cellx), 500);
+        if( celly >= rows) celly = rows-1;
+        if( cellx >= cols) cellx = cols-1;
+        //console.log(mouse);
+        //console.log("y:" + celly + " x:" + cellx);
 
+        //mouseTimer = window.setTimeout(execMouseDown(celly, cellx),10);
+        //interval_ = setInterval( DrawCell(celly, cellx), 500);
+
+        if( !(celly == historyCelly && cellx == historyCellx) ) {
+            if( historyCelly>=0 && historyCellx >= 0 ) {
+                releaseCell( historyCelly, historyCellx);
+                drawCanvasCell( historyCelly, historyCellx);
+            }
+            holdCell( celly, cellx );
+            drawCanvasCell( celly, cellx);
+            historyCelly = celly;
+            historyCellx = cellx;
+        }
+        console.log("SET ON!");
+        state = 1;
+    }
+}
+
+function mouseMove( event ) {
+    if( state == 1 ) {
+        var pos = getMousePos(canvas, event)
+        mouse.x = pos.x,
+        mouse.y = pos.y;
+
+        var pos = getMousePos(canvas, event)
+        celly = Math.floor( mouse.y / cellsize);
+        cellx = Math.floor( mouse.x / cellsize);
+
+        if( celly >= rows) celly = rows-1;
+        if( cellx >= cols) cellx = cols-1;
+
+        if( !(celly == historyCelly && cellx == historyCellx) ) {
+            if( historyCelly>=0 && historyCellx >= 0 ) {
+                releaseCell( historyCelly, historyCellx);
+                drawCanvasCell( historyCelly, historyCellx);
+            }
+            holdCell( celly, cellx );
+            drawCanvasCell( celly, cellx);
+            historyCelly = celly;
+            historyCellx = cellx;
+        }
+    }
 }
 
 function mouseUp(event) {
@@ -256,31 +408,42 @@ function mouseUp(event) {
     var pos = getMousePos(canvas, event)
     celly = Math.floor( mouse.y / cellsize);
     cellx = Math.floor( mouse.x / cellsize);
-    //console.log(mouse);
-    //console.log("y:" + celly + " x:" + cellx);
-    //DrawCell(celly, cellx);
-    clickCell( celly, cellx);
-}
 
-function DrawCell(celly, cellx) {   //NOT IN USE!
-    let _char = field[celly].charAt( cellx );
+    if( celly >= rows) celly = rows-1;
+    if( cellx >= cols) cellx = cols-1;
 
+    if(state == 1 &&  event.button == 0) {
 
-    //OLD CODE HERE
-    if( _char == "0") {
-        console.log("0->1");
-        sisalto.drawImage( imgBfull, 32, 0, 16, 16, cellx*cellsize, celly*cellsize, 16, 16);
-        //sisalto.drawImage( imgBfull, cellx*cellsize, celly*cellsize);
-        field[celly] = replaceAt( field[celly], cellx, "1");
-    } else if( _char == "1") {
-        console.log("1->0");
-        sisalto.drawImage( imgO, cellx*cellsize, celly*cellsize);
-        field[celly] = replaceAt( field[celly], cellx, "0");
+        //console.log(mouse);
+        //console.log("y:" + celly + " x:" + cellx);
+        //DrawCell(celly, cellx);
+        clickCell( celly, cellx);
+
+    } else if( event.button == 2) {
+        flagCell( celly, cellx );
     }
-
-    //sisalto.drawImage( imgB, cellx*cellsize, celly*cellsize);
-    console.log("Draw try to " + cellx*cellsize +" " + celly*cellsize);
+    state = 0;
 }
+
+// function DrawCell(celly, cellx) {   //NOT IN USE!
+//     let _char = field[celly].charAt( cellx );
+
+
+//     //OLD CODE HERE
+//     if( _char == "0") {
+//         console.log("0->1");
+//         sisalto.drawImage( imgBfull, 32, 0, 16, 16, cellx*cellsize, celly*cellsize, 16, 16);
+//         //sisalto.drawImage( imgBfull, cellx*cellsize, celly*cellsize);
+//         field[celly] = replaceAt( field[celly], cellx, "1");
+//     } else if( _char == "1") {
+//         console.log("1->0");
+//         sisalto.drawImage( imgO, cellx*cellsize, celly*cellsize);
+//         field[celly] = replaceAt( field[celly], cellx, "0");
+//     }
+
+//     //sisalto.drawImage( imgB, cellx*cellsize, celly*cellsize);
+//     console.log("Draw try to " + cellx*cellsize +" " + celly*cellsize);
+// }
 
 function getMousePos(canvas, event) {
     var rect = canvas.getBoundingClientRect();
