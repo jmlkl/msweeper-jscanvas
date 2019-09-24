@@ -231,12 +231,12 @@ function adjacencyCell( y, x) {
 
 function clickCell( y, x ) {
     let _value = adjacency[y].charAt(x);
-    if( _value=="9" || _value=="A") {
+    if( _value=="9" || _value=="A" ) {
         var _adj = adjacencyCell( y, x);
         //console.log( "ADJ:"+_adj );
         adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
         drawCanvasCell( y, x);
-        if( _adj == 0 ) { //when finding empty continue opening path until finding cell that touches mine
+        if( _adj == 0 ) { //when finding empty continue opening path until finding cell that touches mine (has number)
             for( let cy = -1; cy < 2; cy++) {
                 for( let cx = -1; cx < 2; cx++) {
                     if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
@@ -253,6 +253,27 @@ function clickCell( y, x ) {
     }
 }
 
+function revealAround( y, x) {
+    //Different from C# version, own flag function available, and test is made out of this function!
+    for( let cy = -1; cy < 2; cy++) {
+        for( let cx = -1; cx < 2; cx++) {
+            if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
+                if( x+cx >=0 && x+cx < cols ) {
+                    let cellValue = adjacency[y+cy].charAt(x+cx);
+                    //console.log( "ADJ:"+_adj );
+                    if( cellValue == "9") {
+                        //console.log("FOUND SOMETHING");
+                        clickCell( y+cy, x+cx);
+                        // let _adj = adjacencyCell( y+cy, x+cx );
+                        // adjacency[y+cy] = replaceAt( adjacency[y+cy], x+cx, _adj.toString());
+                        // drawCanvasCell( y+cy, x+cx);
+                    } console.log( cellValue );
+                }
+            }
+        }
+    }
+}
+
 function flagCell( y , x ) {
     let cellValue = adjacency[y].charAt(x);
     if( cellValue == "9" ) {
@@ -265,6 +286,22 @@ function flagCell( y , x ) {
         flagCount--;
     }
     drawCanvasCell( y, x);
+}
+
+function countFlags( y, x) {
+    let _flagCount = 0;
+    console.log( "y:" + y + " x:" +x);
+    for( let cy = -1; cy < 2; cy++) {
+        for( let cx = -1; cx < 2; cx++) {
+            if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
+                if( x+cx >=0 && x+cx < cols ) {
+                    //if( grid[ y+cy, x+cx] ) _adjCount++;
+                    if( adjacency[ y+cy].charAt( x+cx) == "F") _flagCount++;
+                }                
+            } 
+        }
+    }
+    return _flagCount;
 }
 
 function holdCell( y, x ) {
@@ -352,7 +389,8 @@ function mouseLeave() { //TODO add some time based thing how long mouse need to 
 
 function mouseDown(event) {
 
-    if( state == 0 && event.button == 0 ) {
+    if( (  state & 1 ) == 0 && event.button == 0 ) {
+        //DUPLICATE CODE WITH mouseMove()
         var cell = getCellPos( canvas, event );
 
         if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
@@ -365,13 +403,35 @@ function mouseDown(event) {
             historyCelly = cell.y;
             historyCellx = cell.x;
         }
+        //DUPLICATE END
         console.log("SET ON!");
-        state = 1;
+        state |= 1;
     }
+
+    if( (  state & 2 ) == 0 && event.button == 2 ) {
+        //DUPLICATE CODE WITH mouseMove()
+        var cell = getCellPos( canvas, event );
+
+        // if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
+        //     if( historyCelly>=0 && historyCellx >= 0 ) {
+        //         releaseCell( historyCelly, historyCellx);
+        //         drawCanvasCell( historyCelly, historyCellx);
+        //     }
+        //     holdCell( cell.y, cell.x );
+        //     drawCanvasCell( cell.y, cell.x);
+        //     historyCelly = cell.y;
+        //     historyCellx = cell.x;
+        // }
+        //DUPLICATE END
+        console.log("SET ON!");
+        state |= 2;
+    }
+    console.log( state );
 }
 
 function mouseMove( event ) {
     if( state == 1 ) {
+        //DUPLICATE CODE WITH mouseMove()
         var cell = getCellPos( canvas, event );
 
         if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
@@ -384,6 +444,9 @@ function mouseMove( event ) {
             historyCelly = cell.y;
             historyCellx = cell.x;
         }
+        //DUPLICATE END
+    } else if(state==3) {
+        //AREA HOLD HERE, (ONLY VISUAL)
     }
 }
 
@@ -391,21 +454,35 @@ function mouseUp(event) {
 
     var cell = getCellPos( canvas, event );
 
-    if( event.button == 0 && state > 2) {
+    if( event.button == 0 && state == 3) {
         let _value = adjacencyCell( cell.y, cell.x);
-        console.log("SWEEP "+_value);
+        state &= ~1;
+        if( _value > 0 && _value < 9 ) {
+
+            //STRUCTURE
+            //value == flags around (and revealed bombs) & there is unrevealed cells, then do this
+            console.log("SWEEPS "+_value +" " + countFlags(cell.y, cell.x));
+            if( _value == countFlags(cell.y, cell.x) ) {
+                console.log("SWEEPL "+_value +" " + countFlags(cell.y, cell.x));
+                revealAround( cell.y, cell.x);
+                console.log("SWEEPA "+_value +" " + countFlags(cell.y, cell.x));
+            }
+            console.log("SWEEPE "+_value +" " + countFlags(cell.y, cell.x));
+        }
 
     } else if(state == 1 &&  event.button == 0 && event.button != 2) {
 
         clickCell( cell.y, cell.x);
         console.log("LMB");
+        state &= ~1;
 
     }
     
     if( event.button == 2) {
+        state &= ~2;
         flagCell( cell.y, cell.x );
+        console.log("RESET RMB STATE + TRY FLAG " + state);
     }
-    state = 0;
 }
 
 function getCellPos( canvas, event) {
