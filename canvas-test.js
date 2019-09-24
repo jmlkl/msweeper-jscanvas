@@ -117,6 +117,7 @@ function updateUI(){ //TODO Rename!
 
 
 function newGame() {
+
     if( document.getElementById("Trows") ) {
         rows = document.getElementById("Trows").value;
     }
@@ -133,7 +134,6 @@ function newGame() {
     //STUFF BELOW SHOULD BE DONE AFTER INITIAL CLICK (SAFE START & TIMER RESET)
     placeMines();
     //adjacencyFull();
-    drawCanvasField();
 
     ///DEBUG LOG
     for( y = 0; y < rows; y++ ) {
@@ -142,7 +142,12 @@ function newGame() {
 
     clearInterval( checkThings );
     checkThings = setInterval( updateUI, 250);
-    
+
+
+    setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas start
+
+
+//    drawCanvasField();
 
     //game related variables
     flagCount = 0;
@@ -310,6 +315,7 @@ function drawCanvasField() {
 
         for( x = 0; x < cols; x++ ) {
             drawCanvasCell( y, x);
+            console.log(y + " " + x + " draw");
         }
     }
 }
@@ -346,7 +352,7 @@ function mouseDown(event) {
         mouse.x = pos.x,
         mouse.y = pos.y;
 
-        var pos = getMousePos(canvas, event)
+        //var pos = getMousePos(canvas, event)
         celly = Math.floor( mouse.y / cellsize);
         cellx = Math.floor( mouse.x / cellsize);
 
@@ -379,7 +385,7 @@ function mouseMove( event ) {
         mouse.x = pos.x,
         mouse.y = pos.y;
 
-        var pos = getMousePos(canvas, event)
+        //var pos = getMousePos(canvas, event)
         celly = Math.floor( mouse.y / cellsize);
         cellx = Math.floor( mouse.x / cellsize);
 
@@ -405,19 +411,23 @@ function mouseUp(event) {
     mouse.x = pos.x,
     mouse.y = pos.y;
 
-    var pos = getMousePos(canvas, event)
+    //var pos = getMousePos(canvas, event)
     celly = Math.floor( mouse.y / cellsize);
     cellx = Math.floor( mouse.x / cellsize);
 
     if( celly >= rows) celly = rows-1;
     if( cellx >= cols) cellx = cols-1;
 
-    if(state == 1 &&  event.button == 0) {
+    if(state == 1 &&  event.button == 0 && event.button != 2) {
 
         //console.log(mouse);
         //console.log("y:" + celly + " x:" + cellx);
         //DrawCell(celly, cellx);
         clickCell( celly, cellx);
+
+    } else if( event.button == 1 && event.button == 2) {
+        let _value = adjacencyCell( celly, cellx);
+        console.log("SWEEP "+_value);
 
     } else if( event.button == 2) {
         flagCell( celly, cellx );
