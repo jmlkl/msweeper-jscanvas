@@ -3,6 +3,11 @@
     y: undefined
 };
 
+var cell={
+    y: undefined,
+    x: undefined
+};
+
 
 
 //Using currently string method instead of nested arrays
@@ -348,31 +353,17 @@ function mouseLeave() { //TODO add some time based thing how long mouse need to 
 function mouseDown(event) {
 
     if( state == 0 && event.button == 0 ) {
-        var pos = getMousePos(canvas, event)
-        mouse.x = pos.x,
-        mouse.y = pos.y;
+        var cell = getCellPos( canvas, event );
 
-        //var pos = getMousePos(canvas, event)
-        celly = Math.floor( mouse.y / cellsize);
-        cellx = Math.floor( mouse.x / cellsize);
-
-        if( celly >= rows) celly = rows-1;
-        if( cellx >= cols) cellx = cols-1;
-        //console.log(mouse);
-        //console.log("y:" + celly + " x:" + cellx);
-
-        //mouseTimer = window.setTimeout(execMouseDown(celly, cellx),10);
-        //interval_ = setInterval( DrawCell(celly, cellx), 500);
-
-        if( !(celly == historyCelly && cellx == historyCellx) ) {
+        if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
             if( historyCelly>=0 && historyCellx >= 0 ) {
                 releaseCell( historyCelly, historyCellx);
                 drawCanvasCell( historyCelly, historyCellx);
             }
-            holdCell( celly, cellx );
-            drawCanvasCell( celly, cellx);
-            historyCelly = celly;
-            historyCellx = cellx;
+            holdCell( cell.y, cell.x );
+            drawCanvasCell( cell.y, cell.x);
+            historyCelly = cell.y;
+            historyCellx = cell.x;
         }
         console.log("SET ON!");
         state = 1;
@@ -381,79 +372,58 @@ function mouseDown(event) {
 
 function mouseMove( event ) {
     if( state == 1 ) {
-        var pos = getMousePos(canvas, event)
-        mouse.x = pos.x,
-        mouse.y = pos.y;
+        var cell = getCellPos( canvas, event );
 
-        //var pos = getMousePos(canvas, event)
-        celly = Math.floor( mouse.y / cellsize);
-        cellx = Math.floor( mouse.x / cellsize);
-
-        if( celly >= rows) celly = rows-1;
-        if( cellx >= cols) cellx = cols-1;
-
-        if( !(celly == historyCelly && cellx == historyCellx) ) {
+        if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
             if( historyCelly>=0 && historyCellx >= 0 ) {
                 releaseCell( historyCelly, historyCellx);
                 drawCanvasCell( historyCelly, historyCellx);
             }
-            holdCell( celly, cellx );
-            drawCanvasCell( celly, cellx);
-            historyCelly = celly;
-            historyCellx = cellx;
+            holdCell( cell.y, cell.x );
+            drawCanvasCell( cell.y, cell.x);
+            historyCelly = cell.y;
+            historyCellx = cell.x;
         }
     }
 }
 
 function mouseUp(event) {
-    //clearInterval( _interval );
+
+    var cell = getCellPos( canvas, event );
+
+    if( event.button == 0 && state > 2) {
+        let _value = adjacencyCell( cell.y, cell.x);
+        console.log("SWEEP "+_value);
+
+    } else if(state == 1 &&  event.button == 0 && event.button != 2) {
+
+        clickCell( cell.y, cell.x);
+        console.log("LMB");
+
+    }
+    
+    if( event.button == 2) {
+        flagCell( cell.y, cell.x );
+    }
+    state = 0;
+}
+
+function getCellPos( canvas, event) {
     var pos = getMousePos(canvas, event)
     mouse.x = pos.x,
     mouse.y = pos.y;
 
-    //var pos = getMousePos(canvas, event)
+
     celly = Math.floor( mouse.y / cellsize);
     cellx = Math.floor( mouse.x / cellsize);
 
     if( celly >= rows) celly = rows-1;
     if( cellx >= cols) cellx = cols-1;
-
-    if(state == 1 &&  event.button == 0 && event.button != 2) {
-
-        //console.log(mouse);
-        //console.log("y:" + celly + " x:" + cellx);
-        //DrawCell(celly, cellx);
-        clickCell( celly, cellx);
-
-    } else if( event.button == 1 && event.button == 2) {
-        let _value = adjacencyCell( celly, cellx);
-        console.log("SWEEP "+_value);
-
-    } else if( event.button == 2) {
-        flagCell( celly, cellx );
-    }
-    state = 0;
+    return{
+        y: celly,
+        x: cellx
+    };
 }
-
-// function DrawCell(celly, cellx) {   //NOT IN USE!
-//     let _char = field[celly].charAt( cellx );
-
-
-//     //OLD CODE HERE
-//     if( _char == "0") {
-//         console.log("0->1");
-//         sisalto.drawImage( imgBfull, 32, 0, 16, 16, cellx*cellsize, celly*cellsize, 16, 16);
-//         //sisalto.drawImage( imgBfull, cellx*cellsize, celly*cellsize);
-//         field[celly] = replaceAt( field[celly], cellx, "1");
-//     } else if( _char == "1") {
-//         console.log("1->0");
-//         sisalto.drawImage( imgO, cellx*cellsize, celly*cellsize);
-//         field[celly] = replaceAt( field[celly], cellx, "0");
-//     }
-
-//     //sisalto.drawImage( imgB, cellx*cellsize, celly*cellsize);
-//     console.log("Draw try to " + cellx*cellsize +" " + celly*cellsize);
-// }
 
 function getMousePos(canvas, event) {
     var rect = canvas.getBoundingClientRect();
