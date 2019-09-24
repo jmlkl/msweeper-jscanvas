@@ -59,7 +59,7 @@ var imgBfull = document.getElementById("fullblue"); //RENAME
 
 var minetrackerId = document.getElementById("mineCount");
 var timetrackerId = document.getElementById("timeElapsed");
-
+var logsId = document.getElementById("history");
 
 
 
@@ -108,7 +108,7 @@ function refTest() {
     newGame();
 }
 
-function updateUI(){ //TODO Rename!
+function updateUI(){
     if( flagCount == itemCount ) {
         //additional check that are those right
     }
@@ -117,6 +117,7 @@ function updateUI(){ //TODO Rename!
     if( timeStart != 0) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerHTML = mines;
     timetrackerId.innerHTML = timeElapsed;
+    logsId.innerHTML = state;
     
 }
 
@@ -171,15 +172,8 @@ function initField() {
     field = [];
     adjacency = [];
     for( y = 0; y < rows; y++ ){
-        let _row = "";
-        for( x = 0; x < cols; x++ ) {
-            _row += "0";
-            //_row += Math.floor( Math.random() * 2 ).toString();//FIXME set back to 2!
-            //_row += Math.floor( Math.random() * 9 ).toString();//FIXME set back to 2!
-        }
-        field[y] = _row;
-        //adjacency[y] = _row;
-        adjacency[y] = "9".repeat( _row.length);
+        field[y] = "0".repeat(cols); //FIXME Hardcoded value
+        adjacency[y] = "9".repeat(cols); //FIXME Hardcoded value
     }
 }
 
@@ -376,14 +370,18 @@ function replaceAt( _string, location, character ) {
     return _string;
 }
 
-function mouseLeave() { //TODO add some time based thing how long mouse need to be out of element before it resets state, makes playing much nicer when user errors are allowed!
+function mouseLeave() { 
+    //FIXME Improve this logic
     if( state != 0 ) {
-        state = 0;
-        releaseCell( historyCelly, historyCellx);
-        drawCanvasCell( historyCelly, historyCellx);
+        //state = 0;
+        if( historyCelly != -1 && historyCellx != -1 ) {
+            releaseCell( historyCelly, historyCellx);
+            drawCanvasCell( historyCelly, historyCellx);
+        }
         historyCelly = -1;
         historyCellx = -1;
-        console.log("STATE RESET!");
+        console.log("HOLD RESET!");
+        state = 0;
     }
 }
 
@@ -393,7 +391,7 @@ function mouseDown(event) {
         //DUPLICATE CODE WITH mouseMove()
         var cell = getCellPos( canvas, event );
 
-        if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
+        if( ( state & 2 ) == 0 && !(cell.y == historyCelly && cell.x == historyCellx) ) {
             if( historyCelly>=0 && historyCellx >= 0 ) {
                 releaseCell( historyCelly, historyCellx);
                 drawCanvasCell( historyCelly, historyCellx);
@@ -423,15 +421,35 @@ function mouseDown(event) {
         //     historyCellx = cell.x;
         // }
         //DUPLICATE END
-        console.log("SET ON!");
+        //console.log("SET ON!");
         state |= 2;
     }
     console.log( state );
 }
 
 function mouseMove( event ) {
-    if( state == 1 ) {
+    if(state==3) {
+        //AREA HOLD HERE, (ONLY VISUAL)
+        //TODO This is higher priority than 1 state, so make this first
         //DUPLICATE CODE WITH mouseMove()
+        // var cell = getCellPos( canvas, event );
+
+        // if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
+        //     if( historyCelly>=0 && historyCellx >= 0 ) {
+        //         releaseCell( historyCelly, historyCellx);
+        //         drawCanvasCell( historyCelly, historyCellx);
+        //     }
+        //     holdCell( cell.y, cell.x );
+        //     drawCanvasCell( cell.y, cell.x);
+        //     historyCelly = cell.y;
+        //     historyCellx = cell.x;
+        // }
+        // //DUPLICATE END
+        
+    } 
+    if( state & 1 == 1 ) {
+        //DUPLICATE CODE WITH mouseMove()
+        console.log("LMB DOWN MOVE")
         var cell = getCellPos( canvas, event );
 
         if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
@@ -445,8 +463,6 @@ function mouseMove( event ) {
             historyCellx = cell.x;
         }
         //DUPLICATE END
-    } else if(state==3) {
-        //AREA HOLD HERE, (ONLY VISUAL)
     }
 }
 
@@ -458,17 +474,21 @@ function mouseUp(event) {
         let _value = adjacencyCell( cell.y, cell.x);
         state &= ~1;
         if( _value > 0 && _value < 9 ) {
-
             //STRUCTURE
             //value == flags around (and revealed bombs) & there is unrevealed cells, then do this
-            console.log("SWEEPS "+_value +" " + countFlags(cell.y, cell.x));
+            //console.log("SWEEPS "+_value +" " + countFlags(cell.y, cell.x));
             if( _value == countFlags(cell.y, cell.x) ) {
-                console.log("SWEEPL "+_value +" " + countFlags(cell.y, cell.x));
+                //console.log("SWEEPL "+_value +" " + countFlags(cell.y, cell.x));
                 revealAround( cell.y, cell.x);
-                console.log("SWEEPA "+_value +" " + countFlags(cell.y, cell.x));
+                //console.log("SWEEPA "+_value +" " + countFlags(cell.y, cell.x));
             }
-            console.log("SWEEPE "+_value +" " + countFlags(cell.y, cell.x));
-        }
+            //console.log("SWEEPE "+_value +" " + countFlags(cell.y, cell.x));
+        } 
+        // else {
+        //     console.log("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
+        //     releaseCell( cell.y, cell.x);
+        //     drawCanvasCell( cell.y, cell.x);
+        // }
 
     } else if(state == 1 &&  event.button == 0 && event.button != 2) {
 
