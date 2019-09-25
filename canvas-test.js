@@ -74,13 +74,14 @@ var field = []; //used for placing mines
 var adjacency = []; //used for drawing canvas (current state)
 
 var state = 0;
+var holdDown = [];
 
 var timeStart = 0;
 var flagCount = 0;
 var explodedCount = 0;
 
-var historyCelly = -1;
-var historyCellx = -1;
+//var historyCelly = -1;
+//var historyCellx = -1;
 
 //sisalto.fillRect( 100, 100, 100, 100);
 // initField();
@@ -159,8 +160,9 @@ function newGame() {
     flagCount = 0;
     explodedCount = 0;
     timeStart = Date.now();
-    historyCelly = -1;
-    historyCellx = -1;
+    //historyCelly = -1;
+    //historyCellx = -1;
+    holdDown= [];
 }
 
 function Cheat() {
@@ -374,12 +376,17 @@ function mouseLeave() {
     //FIXME Improve this logic
     if( state != 0 ) {
         //state = 0;
-        if( historyCelly != -1 && historyCellx != -1 ) {
-            releaseCell( historyCelly, historyCellx);
-            drawCanvasCell( historyCelly, historyCellx);
-        }
-        historyCelly = -1;
-        historyCellx = -1;
+        // if( historyCelly != -1 && historyCellx != -1 ) {
+        //     releaseCell( historyCelly, historyCellx);
+        //     drawCanvasCell( historyCelly, historyCellx);
+        // }
+        if( holdDown.length >= 0 ) {
+            releaseCell( holdDown[0].y, holdDown[0].x);
+            drawCanvasCell( holdDown[0].y, holdDown[0].x);
+        }        
+        //historyCelly = -1;
+        //historyCellx = -1;
+        holdDown = [];
         console.log("HOLD RESET!");
         state = 0;
     }
@@ -391,15 +398,29 @@ function mouseDown(event) {
         //DUPLICATE CODE WITH mouseMove()
         var cell = getCellPos( canvas, event );
 
-        if( ( state & 2 ) == 0 && !(cell.y == historyCelly && cell.x == historyCellx) ) {
-            if( historyCelly>=0 && historyCellx >= 0 ) {
-                releaseCell( historyCelly, historyCellx);
-                drawCanvasCell( historyCelly, historyCellx);
+        //FIXME not needed after hold array change?? 
+        if( ( state & 2 ) == 0 && holdDown.length > 0  ) {//(cell.y == holdDown[0].y && cell.x == holdDown[0].x) ) {
+            if( holdDown[0] != cell ) {
+                //if( historyCelly>=0 && historyCellx >= 0 ) {
+                //if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {    //THIS IS NOT NEEDED WHEN length check is done earlier
+                
+                //releaseCell( holdDown[0].y, holdDown[0].x);       //Maybe these 3 aren't needed
+                //drawCanvasCell( holdDown[0].y, holdDown[0].x);
+                //console.log("SET ON DEEPER INNER");
+
+                //}
+                holdCell( cell.y, cell.x );
+                drawCanvasCell( cell.y, cell.x);
+                holdDown[0]=cell;
+                //historyCelly = cell.y;
+                //historyCellx = cell.x;
+                console.log("SET ON INNER");
             }
+        } else{ //only happens on start and after reset (array is flushed)
             holdCell( cell.y, cell.x );
             drawCanvasCell( cell.y, cell.x);
-            historyCelly = cell.y;
-            historyCellx = cell.x;
+            holdDown[0] = cell;
+            console.log("ASDF");
         }
         //DUPLICATE END
         console.log("SET ON!");
@@ -452,15 +473,18 @@ function mouseMove( event ) {
         console.log("LMB DOWN MOVE")
         var cell = getCellPos( canvas, event );
 
-        if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
-            if( historyCelly>=0 && historyCellx >= 0 ) {
-                releaseCell( historyCelly, historyCellx);
-                drawCanvasCell( historyCelly, historyCellx);
+        //if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
+        if( cell != holdDown[0] ) {
+            //if( historyCelly>=0 && historyCellx >= 0 ) {
+            if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
+                releaseCell( holdDown[0].y, holdDown[0].x);
+                drawCanvasCell( holdDown[0].y, holdDown[0].x);
             }
             holdCell( cell.y, cell.x );
             drawCanvasCell( cell.y, cell.x);
-            historyCelly = cell.y;
-            historyCellx = cell.x;
+            holdDown[0] = cell;
+            //historyCelly = cell.y;
+            //historyCellx = cell.x;
         }
         //DUPLICATE END
     }
