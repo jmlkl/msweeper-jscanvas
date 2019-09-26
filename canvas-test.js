@@ -3,13 +3,13 @@
     y: undefined
 };
 
-var cell={
-    y: undefined,
-    x: undefined,
-    tell: function() {
+function cell() {
+    this.y = undefined;
+    this.x = undefined;
+    this.tell = function() {
         return "x:"+this.x +" y:" + this.y;
-    },
-    release: function() {
+    };
+    this.release = function() {
         releaseCell( this.y, this.x );
         console.log("Trying method way!");
     }
@@ -424,7 +424,7 @@ function mouseDown(event) {
         //FIXME not needed after hold array change?? 
         if( ( state & 2 ) == 0 && holdDown.length > 0  ) {//(cell.y == holdDown[0].y && cell.x == holdDown[0].x) ) {
             console.log("SET ON INNE!");
-            if( holdDown[0] != _cell ) {
+            //if( holdDown[0] != _cell ) {
                 //if( historyCelly>=0 && historyCellx >= 0 ) {
                 //if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {    //THIS IS NOT NEEDED WHEN length check is done earlier
                 
@@ -439,7 +439,7 @@ function mouseDown(event) {
                 //historyCelly = cell.y;
                 //historyCellx = cell.x;
                 console.log("SET ON INNER");
-            }
+            //x}
         } else{ //only happens on start and after reset (array is flushed)
             holdCell( _cell.y, _cell.x );
             drawCanvasCell( _cell.y, _cell.x);
@@ -570,10 +570,12 @@ function getCellPos( canvas, event) {
     if( celly >= rows) celly = rows-1;
     if( cellx >= cols) cellx = cols-1;
 
-    var _cell = cell;
+    //if( holdDown.length > 0 ) console.log("hDEBUG INFO "+ holdDown[0].y + " " + holdDown[0].x );
+    let _cell = new cell();
     _cell.y = celly;
     _cell.x = cellx;
-
+    //console.log("tDEBUG INFO "+ _cell.y + " " + _cell.x );
+    //if( holdDown.length > 0 ) console.log("hDEBUG INFO "+ holdDown[0].y + " " + holdDown[0].x );
     return _cell;
     // return{
     //     y: celly,
