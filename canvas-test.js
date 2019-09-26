@@ -5,7 +5,14 @@
 
 var cell={
     y: undefined,
-    x: undefined
+    x: undefined,
+    tell: function() {
+        return "x:"+this.x +" y:" + this.y;
+    },
+    release: function() {
+        releaseCell( this.y, this.x );
+        console.log("Trying method way!");
+    }
 };
 
 
@@ -115,10 +122,17 @@ function updateUI(){
     }
     let mines = itemCount -(flagCount +explodedCount);
     let timeElapsed = 0;    //TODO needs to be global, for history tracking!
+
+    let _teksti = "State:" +state+ "<br>";
+    
+    for( i = 0; i<holdDown.length ;i++ ) {
+        _teksti += holdDown[i].tell()  + "<br>";
+    }
+
     if( timeStart != 0) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerHTML = mines;
     timetrackerId.innerHTML = timeElapsed;
-    logsId.innerHTML = state;
+    logsId.innerHTML = _teksti;
     
 }
 
@@ -263,7 +277,7 @@ function revealAround( y, x) {
                         // let _adj = adjacencyCell( y+cy, x+cx );
                         // adjacency[y+cy] = replaceAt( adjacency[y+cy], x+cx, _adj.toString());
                         // drawCanvasCell( y+cy, x+cx);
-                    } console.log( cellValue );
+                    } //console.log( cellValue );
                 }
             }
         }
@@ -353,7 +367,7 @@ function drawCanvasField() {
 
         for( x = 0; x < cols; x++ ) {
             drawCanvasCell( y, x);
-            console.log(y + " " + x + " draw");
+            //console.log(y + " " + x + " draw");
         }
     }
 }
@@ -380,15 +394,22 @@ function mouseLeave() {
         //     releaseCell( historyCelly, historyCellx);
         //     drawCanvasCell( historyCelly, historyCellx);
         // }
-        if( holdDown.length >= 0 ) {
-            releaseCell( holdDown[0].y, holdDown[0].x);
-            drawCanvasCell( holdDown[0].y, holdDown[0].x);
-        }        
+        // if( holdDown.length >= 0 ) {
+        //     //releaseCell( holdDown[0].y, holdDown[0].x);
+        //     // holdDown[0].release();
+        //     // drawCanvasCell( holdDown[0].y, holdDown[0].x);
+        // }        
         //historyCelly = -1;
         //historyCellx = -1;
+        for( let i = 0; i < holdDown.length; i++ ) {
+            holdDown[i].release();
+            drawCanvasCell( holdDown[i].y, holdDown[i].x);
+        }
         holdDown = [];
         console.log("HOLD RESET!");
         state = 0;
+
+        let a 
     }
 }
 
@@ -396,11 +417,14 @@ function mouseDown(event) {
 
     if( (  state & 1 ) == 0 && event.button == 0 ) {
         //DUPLICATE CODE WITH mouseMove()
-        var cell = getCellPos( canvas, event );
+        var _cell = getCellPos( canvas, event );
+        
+        console.log( _cell );
 
         //FIXME not needed after hold array change?? 
         if( ( state & 2 ) == 0 && holdDown.length > 0  ) {//(cell.y == holdDown[0].y && cell.x == holdDown[0].x) ) {
-            if( holdDown[0] != cell ) {
+            console.log("SET ON INNE!");
+            if( holdDown[0] != _cell ) {
                 //if( historyCelly>=0 && historyCellx >= 0 ) {
                 //if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {    //THIS IS NOT NEEDED WHEN length check is done earlier
                 
@@ -409,17 +433,17 @@ function mouseDown(event) {
                 //console.log("SET ON DEEPER INNER");
 
                 //}
-                holdCell( cell.y, cell.x );
-                drawCanvasCell( cell.y, cell.x);
-                holdDown[0]=cell;
+                holdCell( _cell.y, _cell.x );
+                drawCanvasCell( _cell.y, _cell.x);
+                holdDown[0]=_cell;
                 //historyCelly = cell.y;
                 //historyCellx = cell.x;
                 console.log("SET ON INNER");
             }
         } else{ //only happens on start and after reset (array is flushed)
-            holdCell( cell.y, cell.x );
-            drawCanvasCell( cell.y, cell.x);
-            holdDown[0] = cell;
+            holdCell( _cell.y, _cell.x );
+            drawCanvasCell( _cell.y, _cell.x);
+            holdDown[0] = _cell;
             console.log("ASDF");
         }
         //DUPLICATE END
@@ -427,9 +451,9 @@ function mouseDown(event) {
         state |= 1;
     }
 
-    if( (  state & 2 ) == 0 && event.button == 2 ) {
+    if( (  state & 2 ) == 0 && event.button == 2 ) {    //SETTING RMB ACTIVE
         //DUPLICATE CODE WITH mouseMove()
-        var cell = getCellPos( canvas, event );
+        var _cell = getCellPos( canvas, event );
 
         // if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
         //     if( historyCelly>=0 && historyCellx >= 0 ) {
@@ -471,18 +495,21 @@ function mouseMove( event ) {
     if( state & 1 == 1 ) {
         //DUPLICATE CODE WITH mouseMove()
         console.log("LMB DOWN MOVE")
-        var cell = getCellPos( canvas, event );
-
+        var _cell = getCellPos( canvas, event );
+        console.log( _cell );
+        console.log( holdDown[0] );
         //if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
-        if( cell != holdDown[0] ) {
+        if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
+            console.log("CHANGING CELL!")
             //if( historyCelly>=0 && historyCellx >= 0 ) {
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
-                releaseCell( holdDown[0].y, holdDown[0].x);
+                //releaseCell( holdDown[0].y, holdDown[0].x);
+                holdDown[0].release();
                 drawCanvasCell( holdDown[0].y, holdDown[0].x);
             }
-            holdCell( cell.y, cell.x );
-            drawCanvasCell( cell.y, cell.x);
-            holdDown[0] = cell;
+            holdCell( _cell.y, _cell.x );
+            drawCanvasCell( _cell.y, _cell.x);
+            holdDown[0] = _cell;
             //historyCelly = cell.y;
             //historyCellx = cell.x;
         }
@@ -492,31 +519,33 @@ function mouseMove( event ) {
 
 function mouseUp(event) {
 
-    var cell = getCellPos( canvas, event );
+    var _cell = getCellPos( canvas, event );
 
     if( event.button == 0 && state == 3) {
-        let _value = adjacencyCell( cell.y, cell.x);
+        //let _value = adjacencyCell( cell.y, cell.x);
+        let _value = adjacency[ _cell.y ].charAt( _cell.x )
         state &= ~1;
+        console.log( "VALUE OF BLOCK " + _value );
         if( _value > 0 && _value < 9 ) {
             //STRUCTURE
             //value == flags around (and revealed bombs) & there is unrevealed cells, then do this
             //console.log("SWEEPS "+_value +" " + countFlags(cell.y, cell.x));
-            if( _value == countFlags(cell.y, cell.x) ) {
+            if( _value == countFlags(_cell.y, _cell.x) ) {
                 //console.log("SWEEPL "+_value +" " + countFlags(cell.y, cell.x));
-                revealAround( cell.y, cell.x);
+                revealAround( _cell.y, _cell.x);
                 //console.log("SWEEPA "+_value +" " + countFlags(cell.y, cell.x));
             }
             //console.log("SWEEPE "+_value +" " + countFlags(cell.y, cell.x));
         } 
-        // else {
-        //     console.log("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
-        //     releaseCell( cell.y, cell.x);
-        //     drawCanvasCell( cell.y, cell.x);
-        // }
+        else {
+            //
+            releaseCell( _cell.y, _cell.x);
+            drawCanvasCell( _cell.y, _cell.x);
+        }
 
     } else if(state == 1 &&  event.button == 0 && event.button != 2) {
 
-        clickCell( cell.y, cell.x);
+        clickCell( _cell.y, _cell.x);
         console.log("LMB");
         state &= ~1;
 
@@ -524,7 +553,7 @@ function mouseUp(event) {
     
     if( event.button == 2) {
         state &= ~2;
-        flagCell( cell.y, cell.x );
+        flagCell( _cell.y, _cell.x );
         console.log("RESET RMB STATE + TRY FLAG " + state);
     }
 }
@@ -540,10 +569,16 @@ function getCellPos( canvas, event) {
 
     if( celly >= rows) celly = rows-1;
     if( cellx >= cols) cellx = cols-1;
-    return{
-        y: celly,
-        x: cellx
-    };
+
+    var _cell = cell;
+    _cell.y = celly;
+    _cell.x = cellx;
+
+    return _cell;
+    // return{
+    //     y: celly,
+    //     x: cellx
+    // };
 }
 
 function getMousePos(canvas, event) {
