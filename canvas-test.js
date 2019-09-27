@@ -27,9 +27,9 @@ var itemCount = Math.floor( cols*rows*itemRatio /100);
 var sisalto = canvas.getContext("2d");
 
 //Images
-var imgO = document.getElementById("orange"); //Not used
-var imgB = document.getElementById("blue");     //Not used
-var imgBfull = document.getElementById("fullblue"); //RENAME
+// var imgO = document.getElementById("orange"); //Not used
+// var imgB = document.getElementById("blue");     //Not used
+var imgFull = document.getElementById("fullimage"); //RENAME
 
 var minetrackerId = document.getElementById("mineCount");
 var timetrackerId = document.getElementById("timeElapsed");
@@ -330,23 +330,23 @@ function drawCanvasCell( y, x ) {
         //empty, numbered and unrevealed tile find from file and draw
         let _tx = _num % fullPicTilesX;
         let _ty = Math.floor(_num/fullPicTilesX);
-        sisalto.drawImage( imgBfull, _tx*cellsize, _ty*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize);
+        sisalto.drawImage( imgFull, _tx*cellsize, _ty*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize);
     } else {
         switch( _char ) {
             //other tiles (bomb, flag...)
             //TODO Structure this properly
             case "A":
-                sisalto.drawImage( imgBfull, 2*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 2*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
             case "B":
-                sisalto.drawImage( imgBfull, 3*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 3*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
             case "C":
-                sisalto.drawImage( imgBfull, 0*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 0*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
             case "F":
             default:
-                sisalto.drawImage( imgBfull, 3*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 3*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
         }
     }

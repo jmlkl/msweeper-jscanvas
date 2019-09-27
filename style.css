@@ -1,0 +1,22 @@
+/* body {           
+    margin: 0;
+    display: : inline; 
+} */
+canvas {
+    border: 1px solid black;
+    /* background-color: silver; */
+}
+input[type=number] {
+    width: 40px;
+}
+#orange {
+    display: none;
+    visibility: hidden;
+}
+#blue {
+    display: none;
+    visibility: hidden;
+}
+#fullimage {
+    display: none;
+}
