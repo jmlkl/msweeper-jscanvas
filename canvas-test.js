@@ -11,7 +11,7 @@ function cell() {
     };
     this.release = function() {
         releaseCell( this.y, this.x );
-        console.log("Trying method way!");
+        //console.log("Trying method way!");
     }
 };
 
@@ -68,6 +68,7 @@ canvas.addEventListener("mouseup", mouseUp );
 canvas.addEventListener("mousemove", mouseMove );
 canvas.addEventListener("contextmenu", blockRMBMenu );
 canvas.addEventListener("mouseleave", mouseLeave );
+//canvas.addEventListener("mouseleave", blur );   //addd for testing
 
 
 var checkThings = setInterval( updateUI, 250);
@@ -76,7 +77,7 @@ function updateUI(){
     if( flagCount == itemCount ) {
         //additional check that are those right
     }
-    let mines = itemCount -(flagCount +explodedCount);
+    let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
     let timeElapsed = 0;    //TODO needs to be global, for history tracking!
 
     let _teksti = "State:" +state+ "<br>";
@@ -87,7 +88,7 @@ function updateUI(){
 
     if( timeStart != 0) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerHTML = mines;
-    timetrackerId.innerHTML = timeElapsed;
+    timetrackerId.innerHTML = " Time: " + timeElapsed;
     logsId.innerHTML = _teksti;
     
 }
@@ -401,22 +402,20 @@ function mouseLeave() {
         holdDown = [];
         console.log("HOLD RESET!");
         state = 0;
-
-        let a 
     }
 }
 
 function mouseDown(event) {
 
-    if( (  state & 1 ) == 0 && event.button == 0 ) {
+    if( !(state & 1 ) && event.button == 0 ) {
         //DUPLICATE CODE WITH mouseMove()
         var _cell = getCellPos( canvas, event );
         
         console.log( _cell );
 
         //FIXME not needed after hold array change?? 
-        if( ( state & 2 ) == 0 && holdDown.length > 0  ) {//(cell.y == holdDown[0].y && cell.x == holdDown[0].x) ) {
-            console.log("SET ON INNE!");
+        if( !(state & 2) && holdDown.length > 0  ) {//(cell.y == holdDown[0].y && cell.x == holdDown[0].x) ) {
+            //console.log("SET ON INNE!");
             //if( holdDown[0] != _cell ) {
                 //if( historyCelly>=0 && historyCellx >= 0 ) {
                 //if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {    //THIS IS NOT NEEDED WHEN length check is done earlier
@@ -431,9 +430,10 @@ function mouseDown(event) {
                 holdDown[0]=_cell;
                 //historyCelly = cell.y;
                 //historyCellx = cell.x;
-                console.log("SET ON INNER");
+                //console.log("SET ON INNER");
             //x}
         } else{ //only happens on start and after reset (array is flushed)
+            
             holdCell( _cell.y, _cell.x );
             drawCanvasCell( _cell.y, _cell.x);
             holdDown[0] = _cell;
@@ -444,7 +444,7 @@ function mouseDown(event) {
         state |= 1;
     }
 
-    if( (  state & 2 ) == 0 && event.button == 2 ) {    //SETTING RMB ACTIVE
+    if( !(state & 2) && event.button == 2 ) {    //SETTING RMB ACTIVE
         //DUPLICATE CODE WITH mouseMove()
         var _cell = getCellPos( canvas, event );
 
@@ -456,12 +456,29 @@ function mouseDown(event) {
         //     holdCell( cell.y, cell.x );
         //     drawCanvasCell( cell.y, cell.x);
         //     historyCelly = cell.y;
-        //     historyCellx = cell.x;
-        // }
+         // }
         //DUPLICATE END
         //console.log("SET ON!");
         state |= 2;
+        // console.log("RMB");
+        // if ( (state & 2) ) console.log("2=1");
     }
+
+    if( ( ( state & 1)  && event.button == 2) || ( (state & 2) && event.button == 0 )){
+        //console.log("AREA HD");
+        var _cell = getCellPos( canvas, event );
+        //console.log( holdDown[0].y)
+
+        if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
+            holdCellArea( _cell );
+
+        }
+
+        state |= 1;
+        state |= 2;
+    
+    }
+
     console.log( state );
 }
 
@@ -498,7 +515,7 @@ function mouseMove( event ) {
         // }
         // //DUPLICATE END
         
-    } else if( state & 1 == 1 ) {
+    } else if( state & 1 ) {
         //DUPLICATE CODE WITH mouseMove()
         //console.log("LMB DOWN MOVE")
         var _cell = getCellPos( canvas, event );
@@ -511,8 +528,10 @@ function mouseMove( event ) {
             //if( historyCelly>=0 && historyCellx >= 0 ) {
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
                 //releaseCell( holdDown[0].y, holdDown[0].x);
-                holdDown[0].release();
-                drawCanvasCell( holdDown[0].y, holdDown[0].x);
+                for( i = 0; i < holdDown.length; i ++ ) {
+                    holdDown[i].release();
+                    drawCanvasCell( holdDown[i].y, holdDown[i].x);
+                }
             }
             holdCell( _cell.y, _cell.x );
             drawCanvasCell( _cell.y, _cell.x);
@@ -546,6 +565,10 @@ function mouseUp(event) {
                 revealAround( _cell.y, _cell.x);
                 //console.log("SWEEPA "+_value +" " + countFlags(cell.y, cell.x));
             }
+            for( i = 0; i < holdDown.length; i ++ ) {
+                holdDown[i].release();
+                drawCanvasCell( holdDown[i].y, holdDown[i].x);
+            }
             //console.log("SWEEPE "+_value +" " + countFlags(cell.y, cell.x));
         } 
         else {
@@ -558,7 +581,7 @@ function mouseUp(event) {
         }
 
     } else if(state == 1 &&  event.button == 0 && event.button != 2) {
-
+        
         clickCell( _cell.y, _cell.x);
         console.log("LMB");
         state &= ~1;
