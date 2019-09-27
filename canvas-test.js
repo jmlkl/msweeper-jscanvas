@@ -111,7 +111,6 @@ function newGame() {
 
     //STUFF BELOW SHOULD BE DONE AFTER INITIAL CLICK (SAFE START & TIMER RESET)
     placeMines();
-    //adjacencyFull();
 
     ///DEBUG (SHOW MINE LOCATIONS)
     // for( y = 0; y < rows; y++ ) {
@@ -172,13 +171,9 @@ function placeMines() {
 function adjacencyFull() {
     for(let y = 0; y < rows; y++ ) {
         for(let x = 0; x < cols; x++ ) {
-            //if( field[y].charAt( x ) == "0" ) {
-            //}
-            //console.log( adjacencyCell(y, x ));
             let _adj = adjacencyCell( y, x);
             if( _adj < 9 ) {
                 adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
-                //console.log( _adj );
             }
         }
     }
@@ -193,7 +188,6 @@ function adjacencyCell( y, x) {
                 _adjCount = "C";                
             } else if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                 if( x+cx >=0 && x+cx < cols ) {
-                    //if( grid[ y+cy, x+cx] ) _adjCount++;
                     if( field[ y+cy].charAt( x+cx) == "B") _adjCount++;
                 }
             } 
@@ -207,7 +201,6 @@ function clickCell( y, x ) {
     let _value = adjacency[y].charAt(x);
     if( _value=="9" || _value=="A" ) {
         var _adj = adjacencyCell( y, x);
-        //console.log( "ADJ:"+_adj );
         adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
         drawCanvasCell( y, x);
         if( _adj == 0 ) { //when finding empty continue opening path until finding cell that touches mine (has number)
@@ -238,10 +231,7 @@ function revealAround( y, x) {
                     if( cellValue == "9" || cellValue == "A" )  { //allow hold state!
                         console.log("FOUND SOMETHING");
                         clickCell( y+cy, x+cx);
-                        // let _adj = adjacencyCell( y+cy, x+cx );
-                        // adjacency[y+cy] = replaceAt( adjacency[y+cy], x+cx, _adj.toString());
-                        // drawCanvasCell( y+cy, x+cx);
-                    } //console.log( cellValue );
+                    }
                 }
             }
         }
@@ -251,11 +241,9 @@ function revealAround( y, x) {
 function flagCell( y , x ) {
     let cellValue = adjacency[y].charAt(x);
     if( cellValue == "9" ) {
-        //console.log("9->F");
         adjacency[y] = replaceAt( adjacency[y], x, "F"); //FIXME Hardcoded value
         flagCount++;
     } else if( cellValue == "F") {
-        //console.log("F->9");
         adjacency[y] = replaceAt( adjacency[y], x, "9"); //FIXME Hardcoded value
         flagCount--;
     }
@@ -269,7 +257,6 @@ function countFlagsAround( y, x) {
         for( let cx = -1; cx < 2; cx++) {
             if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                 if( x+cx >=0 && x+cx < cols ) {
-                    //if( grid[ y+cy, x+cx] ) _adjCount++;
                     if( adjacency[ y+cy].charAt( x+cx) == "F") _flagCount++;
                 }                
             } 
@@ -367,12 +354,8 @@ function drawCanvasCell( y, x ) {
 
 function drawCanvasField() {
     for( y = 0; y < rows; y++ ){
-        //let _row = field[y];
-        //let _row = adjacency[y];  //OFF NOW
-
         for( x = 0; x < cols; x++ ) {
             drawCanvasCell( y, x);
-            //console.log(y + " " + x + " draw");
         }
     }
 }
@@ -415,23 +398,9 @@ function mouseDown(event) {
 
         //FIXME not needed after hold array change?? 
         if( !(state & 2) && holdDown.length > 0  ) {//(cell.y == holdDown[0].y && cell.x == holdDown[0].x) ) {
-            //console.log("SET ON INNE!");
-            //if( holdDown[0] != _cell ) {
-                //if( historyCelly>=0 && historyCellx >= 0 ) {
-                //if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {    //THIS IS NOT NEEDED WHEN length check is done earlier
-                
-                //releaseCell( holdDown[0].y, holdDown[0].x);       //Maybe these 3 aren't needed
-                //drawCanvasCell( holdDown[0].y, holdDown[0].x);
-                //console.log("SET ON DEEPER INNER");
-
-                //}
                 holdCell( _cell.y, _cell.x );
                 drawCanvasCell( _cell.y, _cell.x);
                 holdDown[0]=_cell;
-                //historyCelly = cell.y;
-                //historyCellx = cell.x;
-                //console.log("SET ON INNER");
-            //x}
         } else{ //only happens on start and after reset (array is flushed)
             
             holdCell( _cell.y, _cell.x );
@@ -447,27 +416,12 @@ function mouseDown(event) {
     if( !(state & 2) && event.button == 2 ) {    //SETTING RMB ACTIVE
         //DUPLICATE CODE WITH mouseMove()
         var _cell = getCellPos( canvas, event );
-
-        // if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
-        //     if( historyCelly>=0 && historyCellx >= 0 ) {
-        //         releaseCell( historyCelly, historyCellx);
-        //         drawCanvasCell( historyCelly, historyCellx);
-        //     }
-        //     holdCell( cell.y, cell.x );
-        //     drawCanvasCell( cell.y, cell.x);
-        //     historyCelly = cell.y;
-         // }
-        //DUPLICATE END
-        //console.log("SET ON!");
         state |= 2;
-        // console.log("RMB");
-        // if ( (state & 2) ) console.log("2=1");
     }
 
     if( ( ( state & 1)  && event.button == 2) || ( (state & 2) && event.button == 0 )){
         //console.log("AREA HD");
         var _cell = getCellPos( canvas, event );
-        //console.log( holdDown[0].y)
 
         if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
             holdCellArea( _cell );
@@ -488,11 +442,9 @@ function mouseMove( event ) {
         //TODO This is higher priority than 1 state, so I made this first
         //TODO This code needs to be also added to mouseDown
         
-        
         var _cell = getCellPos( canvas, event );
         if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
-                //releaseCell( holdDown[0].y, holdDown[0].x);
                 for( i = 0; i < holdDown.length; i ++ ) {
                     holdDown[i].release();
                     drawCanvasCell( holdDown[i].y, holdDown[i].x);
@@ -501,33 +453,16 @@ function mouseMove( event ) {
             
             holdCellArea( _cell );
             drawCanvasCell( _cell.y, _cell.x);
-            //holdDown[0] = _cell;
         }
-        // if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
-        //     if( historyCelly>=0 && historyCellx >= 0 ) {
-        //         releaseCell( historyCelly, historyCellx);
-        //         drawCanvasCell( historyCelly, historyCellx);
-        //     }
-        //     holdCell( cell.y, cell.x );
-        //     drawCanvasCell( cell.y, cell.x);
-        //     historyCelly = cell.y;
-        //     historyCellx = cell.x;
-        // }
         // //DUPLICATE END
         
     } else if( state & 1 ) {
         //DUPLICATE CODE WITH mouseMove()
         //console.log("LMB DOWN MOVE")
         var _cell = getCellPos( canvas, event );
-        //console.log( _cell );
-        //console.log( holdDown[0] );
-        //if( !(cell.y == historyCelly && cell.x == historyCellx) ) {
-        //if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
         if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
             console.log("CHANGING CELL!")
-            //if( historyCelly>=0 && historyCellx >= 0 ) {
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
-                //releaseCell( holdDown[0].y, holdDown[0].x);
                 for( i = 0; i < holdDown.length; i ++ ) {
                     holdDown[i].release();
                     drawCanvasCell( holdDown[i].y, holdDown[i].x);
@@ -536,8 +471,6 @@ function mouseMove( event ) {
             holdCell( _cell.y, _cell.x );
             drawCanvasCell( _cell.y, _cell.x);
             holdDown[0] = _cell;
-            //historyCelly = cell.y;
-            //historyCellx = cell.x;
         }
         //DUPLICATE END
     }
@@ -548,30 +481,24 @@ function mouseUp(event) {
     var _cell = getCellPos( canvas, event );
 
     if( event.button == 0 && state == 3) {  //AREA OPEN
-        //let _value = adjacencyCell( cell.y, cell.x);
         let _value = adjacency[ _cell.y ].charAt( _cell.x )
         state &= ~1;
         console.log( "VALUE OF BLOCK " + _value );
         if( _value > 0 && _value < 9 ) {
             //STRUCTURE
             //value == flags around (and revealed bombs) & there is unrevealed cells, then do this
-            //console.log("SWEEPS "+_value +" " + countFlags(cell.y, cell.x));
             let _f = countFlagsAround(_cell.y, _cell.x);
             let _b = countBombsAround(_cell.y, _cell.x)
             let _fb = countFlagsAround(_cell.y, _cell.x)+countBombsAround(_cell.y, _cell.x);    //TODO Make user setting for this (allow bomb adjacency (makes game easier))
-            // console.log( "V:"+ _value + " F: " + _f + " B: " + _b + " FB: " + _fb);
+            
             if( _value == _fb ) {
-                //console.log("SWEEPL "+_value +" " + countFlags(cell.y, cell.x));
                 revealAround( _cell.y, _cell.x);
-                //console.log("SWEEPA "+_value +" " + countFlags(cell.y, cell.x));
             }
             for( i = 0; i < holdDown.length; i ++ ) {
                 holdDown[i].release();
                 drawCanvasCell( holdDown[i].y, holdDown[i].x);
             }
-            //console.log("SWEEPE "+_value +" " + countFlags(cell.y, cell.x));
-        } 
-        else {
+        } else {
             //
             for( i = 0; i < holdDown.length; i ++ ) {
                 holdDown[i].release();
@@ -586,9 +513,14 @@ function mouseUp(event) {
         console.log("LMB");
         state &= ~1;
 
+    } else if( state == 3 && event.button == 2 ) {
+        for( i = 0; i < holdDown.length; i ++ ) {
+            holdDown[i].release();
+            drawCanvasCell( holdDown[i].y, holdDown[i].x);
+        }    
     }
     
-    if( event.button == 2) {
+    if( event.button == 2 ) {
         state &= ~2;
         flagCell( _cell.y, _cell.x );
         console.log("RESET RMB STATE + TRY FLAG " + state);
@@ -607,17 +539,11 @@ function getCellPos( canvas, event) {
     if( celly >= rows) celly = rows-1;
     if( cellx >= cols) cellx = cols-1;
 
-    //if( holdDown.length > 0 ) console.log("hDEBUG INFO "+ holdDown[0].y + " " + holdDown[0].x );
     let _cell = new cell();
     _cell.y = celly;
     _cell.x = cellx;
-    //console.log("tDEBUG INFO "+ _cell.y + " " + _cell.x );
-    //if( holdDown.length > 0 ) console.log("hDEBUG INFO "+ holdDown[0].y + " " + holdDown[0].x );
+
     return _cell;
-    // return{
-    //     y: celly,
-    //     x: cellx
-    // };
 }
 
 function getMousePos(canvas, event) {
