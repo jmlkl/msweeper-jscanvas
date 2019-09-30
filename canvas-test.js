@@ -17,6 +17,7 @@ function cell() {
 
 
 var canvas = document.getElementById("piirtoAlue");
+var gamearea = document.getElementById("game-area");
 var cellsize = 16;
 var cols = 72;
 var rows = 42;
@@ -27,8 +28,6 @@ var itemCount = Math.floor( cols*rows*itemRatio /100);
 var sisalto = canvas.getContext("2d");
 
 //Images
-// var imgO = document.getElementById("orange"); //Not used
-// var imgB = document.getElementById("blue");     //Not used
 var imgFull = document.getElementById("fullimage"); //RENAME
 
 var minetrackerId = document.getElementById("mineCount");
@@ -64,10 +63,10 @@ sisalto.save();
 
 
 canvas.addEventListener("mousedown", mouseDown );
-canvas.addEventListener("mouseup", mouseUp );
+gamearea.addEventListener("mouseup", mouseUp );
 canvas.addEventListener("mousemove", mouseMove );
-canvas.addEventListener("contextmenu", blockRMBMenu );
-canvas.addEventListener("mouseleave", mouseLeave );
+gamearea.addEventListener("contextmenu", blockRMBMenu );
+gamearea.addEventListener("mouseleave", mouseLeave );
 //canvas.addEventListener("mouseleave", blur );   //addd for testing
 
 
@@ -80,8 +79,14 @@ function updateUI(){
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
     let timeElapsed = 0;    //TODO needs to be global, for history tracking!
 
+
     let _teksti = "State:" +state+ "<br>";
+    //var _ff = [];
+    //_ff[0] = aaa();
+    _teksti += delegatioLoopTest( 110, 0, aaa  );
+
     
+
     for( i = 0; i<holdDown.length ;i++ ) {
         _teksti += holdDown[i].tell()  + "<br>";
     }
@@ -93,6 +98,19 @@ function updateUI(){
     
 }
 
+function aaa( y, x ) {
+    let _str = "ö" + y +" xä" + x;
+    return _str
+}
+
+function delegatioLoopTest( y, x, action ) {
+    let t = "";
+    for( let cy = -1; cy < 2; cy++) {
+        for( let cx = -1; cx < 2; cx++) {
+            t += action( y+cy, x+cx );
+        }
+    }
+}
 
 function newGame() {
 
@@ -478,7 +496,13 @@ function mouseMove( event ) {
 
 function mouseUp(event) {
 
+
     var _cell = getCellPos( canvas, event );
+    var _insideC = insideCanvas( canvas, event );
+    
+    // if( !_inC ) {
+    //     console.log("release outside canvas");
+    // }
 
     if( event.button == 0 && state == 3) {  //AREA OPEN
         let _value = adjacency[ _cell.y ].charAt( _cell.x )
@@ -488,10 +512,10 @@ function mouseUp(event) {
             //STRUCTURE
             //value == flags around (and revealed bombs) & there is unrevealed cells, then do this
             let _f = countFlagsAround(_cell.y, _cell.x);
-            let _b = countBombsAround(_cell.y, _cell.x)
-            let _fb = countFlagsAround(_cell.y, _cell.x)+countBombsAround(_cell.y, _cell.x);    //TODO Make user setting for this (allow bomb adjacency (makes game easier))
+            let _b = countBombsAround(_cell.y, _cell.x);    
+            let _fb = _f+_b;//countFlagsAround(_cell.y, _cell.x)+countBombsAround(_cell.y, _cell.x);    //TODO Make user setting for this (allow bomb adjacency (makes game easier))
             
-            if( _value == _fb ) {
+            if( _value == _fb && _insideC) {
                 revealAround( _cell.y, _cell.x);
             }
             for( i = 0; i < holdDown.length; i ++ ) {
@@ -509,8 +533,10 @@ function mouseUp(event) {
 
     } else if(state == 1 &&  event.button == 0 && event.button != 2) {
         
-        clickCell( _cell.y, _cell.x);
-        console.log("LMB");
+        if( _insideC ) {
+            clickCell( _cell.y, _cell.x);
+            console.log("LMB");
+        }
         state &= ~1;
 
     } else if( state == 3 && event.button == 2 ) {
@@ -554,3 +580,12 @@ function getMousePos(canvas, event) {
     };
 }
 
+function insideCanvas( canvas, event ) {
+    let inside = false;
+    var pos = getMousePos(canvas, event)
+    if( pos.x >= 0 && pos.y >= 0 && pos.y <= canvas.height && pos.x <= canvas.width) {
+        inside = true;
+        console.log("INSIDE");
+    }
+    return inside;
+}
