@@ -19,7 +19,6 @@ function cell() {
 var fieldCanvas = document.getElementById("piirtoAlue");
 var gamearea = document.getElementById("game-area");
 var cellsize = 16;
-var cellsizeImage = 16; //original size of tile in image
 var cols = 16;
 var rows = 32;
 var itemRatio = 16;
@@ -36,7 +35,7 @@ var timetrackerId = document.getElementById("timeElapsed");
 var logsId = document.getElementById("history");
 
 
-
+var fullPicCellSize = 16; //TODO take this to use (tile size in image)
 var fullPicTilesX = 4;
 var fullPicTilesY = 4;
 
@@ -57,16 +56,18 @@ const fieldChars = ".12345678#+*OX?P"; //+ hold down cell, O found mine that end
 //GHIJKLMNOPQRSTUV
 //XYZ
 
-var field = []; //used for placing mines
+var field = []; //used for placing mines and hold bomb locations 
 var adjacency = []; //used for drawing canvas (current state)
 
 var state = 0;
 var holdDown = [];
 
 var timeStart = 0;
+var timeElapsed = 0;
 var flagCount = 0;
 var explodedCount = 0;
 
+var gameRunning = false;
 var firstClick = true;
 
 newGameBtn();
@@ -83,16 +84,16 @@ gamearea.addEventListener("mouseleave", mouseLeave );
 //canvas.addEventListener("mouseleave", blur );   //addd for testing
 
 
-var checkThings = setInterval( updateUI, 250);
+var checkThings;// = setInterval( updateUI, 250);
+updateUI();
 
 function updateUI(){
-    if( flagCount == itemCount ) {
+    if( itemCount ==(flagCount +explodedCount) ) {
         //additional check that are those right
-    }
+        console.log("Victory check init");
+    }   
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
-    let timeElapsed = 0;    //TODO needs to be global, for history tracking!
-
-
+   
     let _teksti = "State:" +state+ "<br>";
     //var _ff = [];
     //_ff[0] = aaa();
@@ -103,8 +104,8 @@ function updateUI(){
     for( i = 0; i<holdDown.length ;i++ ) {
         _teksti += holdDown[i].tell()  + "<br>";
     }
-
-    if( timeStart != 0) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
+    
+    if( timeStart != 0 && gameRunning ) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerHTML = mines;
     timetrackerId.innerHTML = " Time: " + timeElapsed;
     logsId.innerHTML = _teksti;
@@ -132,7 +133,13 @@ function delegatioLoopTest( y, x, action ) {
 function newGameBtn() {
     initGame();
     setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas on start
-    firstClick = true;
+    firstClick = true; //TODO this to initGame??
+
+    //game related variables
+    flagCount = 0;
+    explodedCount = 0;
+    holdDown=[];
+    gameRunning = false;
     //newGame();
 }
 
@@ -168,17 +175,22 @@ function newGame(y, x) {
     // setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas on start
 
 
-    //game related variables
-    flagCount = 0;
-    explodedCount = 0;
+    //
     timeStart = Date.now();
+    gameRunning = true;
 
-    holdDown= [];
+
+}
+function CheatBtn() {
+    Cheat();
 }
 
 function Cheat() {
-    adjacencyFull();
-    drawCanvasField();
+    if( gameRunning ) {
+        adjacencyFull();
+        drawCanvasField();
+        gameRunning = false;
+    }
 }
 
 function ShareField() {
