@@ -301,12 +301,15 @@ function countBombsAround( y, x) {
 }
 
 function holdCell( y, x ) {
-    let cellValue = adjacency[y].charAt(x);
     let _ok = false;
-    if( cellValue == "9" ) {
-        adjacency[y] = replaceAt( adjacency[y], x, "A"); //FIXME Hardcoded value
-        _ok = true;
-    }
+    //if( y >= 0 && y < rows && x >=0 && x < cols ) {
+        let cellValue = adjacency[y].charAt(x);
+
+        if( cellValue == "9" ) {
+            adjacency[y] = replaceAt( adjacency[y], x, "A"); //FIXME Hardcoded value
+            _ok = true;
+        }
+    //}
     return _ok;
 }
 
@@ -317,15 +320,16 @@ function holdCellArea( _cellH ) {
     drawCanvasCell( _cellH.y, _cellH.x );
     for( dy=-1; dy<2; dy++) {
         for( dx=-1; dx<2; dx++) {
-            
-            if( holdCell( _cellH.y+dy, _cellH.x+dx )) {
-                _holdCount++;
-                let _cellN = new cell();
-                _cellN.y = _cellH.y+dy;
-                _cellN.x = _cellH.x+dx;
-                holdDown[_holdCount] = _cellN;
+            if( _cellH.y+dy >= 0 && _cellH.y+dy < rows &&  _cellH.x+dx >=0 && _cellH.x+dx < cols ) {
+                if( holdCell( _cellH.y+dy, _cellH.x+dx )) {
+                    _holdCount++;
+                    let _cellN = new cell();
+                    _cellN.y = _cellH.y+dy;
+                    _cellN.x = _cellH.x+dx;
+                    holdDown[_holdCount] = _cellN;
+                }
+                drawCanvasCell( _cellH.y+dy, _cellH.x+dx );
             }
-            drawCanvasCell( _cellH.y+dy, _cellH.x+dx );
         }
     }
 }
@@ -396,10 +400,7 @@ function mouseLeave() {
     //FIXME Improve this logic
     if( state != 0 ) {
 
-        for( let i = 0; i < holdDown.length; i++ ) {
-            holdDown[i].release();
-            drawCanvasCell( holdDown[i].y, holdDown[i].x);
-        }
+        releaseAllCells();
         holdDown = [];
         console.log("HOLD RESET!");
         state = 0;
@@ -462,15 +463,12 @@ function mouseMove( event ) {
         
         var _cell = getCellPos( canvas, event );
         if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
-            if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
-                for( i = 0; i < holdDown.length; i ++ ) {
-                    holdDown[i].release();
-                    drawCanvasCell( holdDown[i].y, holdDown[i].x);
-                }
+            if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {  //TODO is check this needed anymore?
+                releaseAllCells();
             }
             
             holdCellArea( _cell );
-            drawCanvasCell( _cell.y, _cell.x);
+           // drawCanvasCell( _cell.y, _cell.x);
         }
         // //DUPLICATE END
         
@@ -481,10 +479,7 @@ function mouseMove( event ) {
         if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
             console.log("CHANGING CELL!")
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
-                for( i = 0; i < holdDown.length; i ++ ) {
-                    holdDown[i].release();
-                    drawCanvasCell( holdDown[i].y, holdDown[i].x);
-                }
+                releaseAllCells();
             }
             holdCell( _cell.y, _cell.x );
             drawCanvasCell( _cell.y, _cell.x);
@@ -518,38 +513,41 @@ function mouseUp(event) {
             if( _value == _fb && _insideC) {
                 revealAround( _cell.y, _cell.x);
             }
-            for( i = 0; i < holdDown.length; i ++ ) {
-                holdDown[i].release();
-                drawCanvasCell( holdDown[i].y, holdDown[i].x);
-            }
+            releaseAllCells();
         } else {
             //
-            for( i = 0; i < holdDown.length; i ++ ) {
-                holdDown[i].release();
-                drawCanvasCell( holdDown[i].y, holdDown[i].x);
-            }
+            releaseAllCells();
             //drawCanvasCell( _cell.y, _cell.x);
         }
 
     } else if(state == 1 &&  event.button == 0 && event.button != 2) {
         
+        
+        console.log("LMB");
         if( _insideC ) {
             clickCell( _cell.y, _cell.x);
-            console.log("LMB");
         }
+        releaseAllCells();
         state &= ~1;
 
     } else if( state == 3 && event.button == 2 ) {
-        for( i = 0; i < holdDown.length; i ++ ) {
-            holdDown[i].release();
-            drawCanvasCell( holdDown[i].y, holdDown[i].x);
-        }    
+        releaseAllCells();
+        state &= ~2;
     }
     
-    if( event.button == 2 ) {
+    if( event.button == 2 && (state & 2) ) {
         state &= ~2;
-        flagCell( _cell.y, _cell.x );
+        if( _insideC ) {
+            flagCell( _cell.y, _cell.x );
+        }
         console.log("RESET RMB STATE + TRY FLAG " + state);
+    }
+}
+
+function releaseAllCells() {
+    for(let i = 0; i < holdDown.length; i++) {
+        holdDown[i].release();
+        drawCanvasCell(holdDown[i].y, holdDown[i].x);
     }
 }
 
