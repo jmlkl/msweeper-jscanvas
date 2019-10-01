@@ -16,16 +16,17 @@ function cell() {
 };
 
 
-var canvas = document.getElementById("piirtoAlue");
+var fieldCanvas = document.getElementById("piirtoAlue");
 var gamearea = document.getElementById("game-area");
 var cellsize = 16;
-var cols = 72;
-var rows = 42;
+var cellsizeImage = 16; //original size of tile in image
+var cols = 16;
+var rows = 32;
 var itemRatio = 16;
 var itemCount = Math.floor( cols*rows*itemRatio /100);
 
 
-var sisalto = canvas.getContext("2d");
+var sisalto = fieldCanvas.getContext("2d");
 
 //Images
 var imgFull = document.getElementById("fullimage"); //RENAME
@@ -42,6 +43,16 @@ var fullPicTilesY = 4;
 const fieldNums = "0123456789ABCDEF";
 const fieldChars = ".12345678#+*OX?P"; //+ hold down cell, O found mine that end game, X false flag ,- exploded earlier mine???
 
+//0 open tile
+//1-8 adjacency numbers
+//9 unrevealed/closed tile
+//A hold down tile
+//B mine/bomb
+//C revealed bomb
+//E Question mark (not implemented)
+//F flag
+
+
 //0123456789ABCDEF
 //GHIJKLMNOPQRSTUV
 //XYZ
@@ -56,15 +67,17 @@ var timeStart = 0;
 var flagCount = 0;
 var explodedCount = 0;
 
-newGame();
+var firstClick = true;
+
+newGameBtn();
 
 sisalto.save();
 
 
 
-canvas.addEventListener("mousedown", mouseDown );
+fieldCanvas.addEventListener("mousedown", mouseDown );
 gamearea.addEventListener("mouseup", mouseUp );
-canvas.addEventListener("mousemove", mouseMove );
+fieldCanvas.addEventListener("mousemove", mouseMove );
 gamearea.addEventListener("contextmenu", blockRMBMenu );
 gamearea.addEventListener("mouseleave", mouseLeave );
 //canvas.addEventListener("mouseleave", blur );   //addd for testing
@@ -83,7 +96,7 @@ function updateUI(){
     let _teksti = "State:" +state+ "<br>";
     //var _ff = [];
     //_ff[0] = aaa();
-    _teksti += delegatioLoopTest( 110, 0, aaa  );
+    //_teksti += delegatioLoopTest( 110, 0, aaa  );
 
     
 
@@ -98,6 +111,8 @@ function updateUI(){
     
 }
 
+
+//testing out function delegation
 function aaa( y, x ) {
     let _str = "ö" + y +" xä" + x;
     return _str
@@ -112,34 +127,45 @@ function delegatioLoopTest( y, x, action ) {
     }
 }
 
-function newGame() {
+//end of testing
 
+function newGameBtn() {
+    initGame();
+    setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas on start
+    firstClick = true;
+    //newGame();
+}
+
+function initGame() {
     if( document.getElementById("Trows") ) {
         rows = document.getElementById("Trows").value;
     }
-    if( document.getElementById("Trows") ) {
+    if( document.getElementById("Tcols") ) {
         cols = document.getElementById("Tcols").value;
     }
-    canvas.height = cellsize * rows;
-    canvas.width = cellsize * cols;
+    fieldCanvas.height = cellsize * rows;
+    fieldCanvas.width = cellsize * cols;
     
     itemCount = Math.floor( cols*rows*itemRatio /100);
     
     initField();
+}
+
+function newGame(y, x) {
 
     //STUFF BELOW SHOULD BE DONE AFTER INITIAL CLICK (SAFE START & TIMER RESET)
-    placeMines();
+    placeMines(y, x);
 
-    ///DEBUG (SHOW MINE LOCATIONS)
-    // for( y = 0; y < rows; y++ ) {
-    //     console.log(field[y]);
-    // }
+    //DEBUG (SHOW MINE LOCATIONS)
+     for( y = 0; y < rows; y++ ) {
+         console.log(field[y]);
+    }
 
     clearInterval( checkThings );
-    checkThings = setInterval( updateUI, 250);
+    checkThings = setInterval( updateUI, 250);  //TODO make this hardcoded interval as setting / variable based
 
 
-    setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas start
+    // setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas on start
 
 
     //game related variables
@@ -174,15 +200,30 @@ function initField() {
     }
 }
 
-function placeMines() {
+function placeMines( y, x ) {
     var minesLeft = itemCount;
     while( minesLeft > 0 ) {
         _xTry = Math.floor( Math.random() * cols );
         _yTry = Math.floor( Math.random() * rows );
-        if( field[_yTry].charAt( _xTry ) == "0" ) {
-            field[_yTry] = replaceAt( field[_yTry], _xTry, "B");
-            minesLeft--;
+        var calcNewCoords = true;
+        while( calcNewCoords ) {
+            calcNewCoords = false;
+            _xTry = Math.floor( Math.random() * cols );
+            _yTry = Math.floor( Math.random() * rows );
+            for( let cy = -1; cy < 2; cy++) {
+                for( let cx = -1; cx < 2; cx++) {
+                    if( y+cy ==  _yTry && x+cx == _xTry ) {
+                        calcNewCoords = true;
+                    }
+                }
+            }
         }
+        //if( y !=  _yTry && x != _xTry ) {   //safeclicks check.. //TODO implement area based safe zone?
+            if( field[_yTry].charAt( _xTry ) == "0" ) {
+                field[_yTry] = replaceAt( field[_yTry], _xTry, "B");
+                minesLeft--;
+            }
+        //}
     }
 }
 
@@ -411,7 +452,7 @@ function mouseDown(event) {
 
     if( !(state & 1 ) && event.button == 0 ) {
         //DUPLICATE CODE WITH mouseMove()
-        var _cell = getCellPos( canvas, event );
+        var _cell = getCellPos( fieldCanvas, event );
         
         console.log( _cell );
 
@@ -434,13 +475,13 @@ function mouseDown(event) {
 
     if( !(state & 2) && event.button == 2 ) {    //SETTING RMB ACTIVE
         //DUPLICATE CODE WITH mouseMove()
-        var _cell = getCellPos( canvas, event );
+        var _cell = getCellPos( fieldCanvas, event );
         state |= 2;
     }
 
     if( ( ( state & 1)  && event.button == 2) || ( (state & 2) && event.button == 0 )){
         //console.log("AREA HD");
-        var _cell = getCellPos( canvas, event );
+        var _cell = getCellPos( fieldCanvas, event );
 
         if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
             holdCellArea( _cell );
@@ -461,7 +502,7 @@ function mouseMove( event ) {
         //TODO This is higher priority than 1 state, so I made this first
         //TODO This code needs to be also added to mouseDown
         
-        var _cell = getCellPos( canvas, event );
+        var _cell = getCellPos( fieldCanvas, event );
         if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {  //TODO is check this needed anymore?
                 releaseAllCells();
@@ -475,7 +516,7 @@ function mouseMove( event ) {
     } else if( state & 1 ) {
         //DUPLICATE CODE WITH mouseMove()
         //console.log("LMB DOWN MOVE")
-        var _cell = getCellPos( canvas, event );
+        var _cell = getCellPos( fieldCanvas, event );
         if( _cell.y != holdDown[0].y || _cell.x != holdDown[0].x ) {
             console.log("CHANGING CELL!")
             if( holdDown[0].y>=0 && holdDown[0].x >= 0 ) {
@@ -492,8 +533,8 @@ function mouseMove( event ) {
 function mouseUp(event) {
 
 
-    var _cell = getCellPos( canvas, event );
-    var _insideC = insideCanvas( canvas, event );
+    var _cell = getCellPos( fieldCanvas, event );
+    var _insideC = insideCanvas( fieldCanvas, event );
     
     // if( !_inC ) {
     //     console.log("release outside canvas");
@@ -525,6 +566,10 @@ function mouseUp(event) {
         
         console.log("LMB");
         if( _insideC ) {
+            if( firstClick ) {
+                newGame( _cell.y, _cell.x );
+                firstClick = false;
+            }
             clickCell( _cell.y, _cell.x);
         }
         releaseAllCells();
