@@ -85,6 +85,7 @@ gamearea.addEventListener("mouseup", mouseUp );
 fieldCanvas.addEventListener("mousemove", mouseMove );
 gamearea.addEventListener("contextmenu", blockRMBMenu );
 gamearea.addEventListener("mouseleave", mouseLeave );
+document.addEventListener("keydown", keyDown );
 //canvas.addEventListener("mouseleave", blur );   //addd for testing
 
 
@@ -92,22 +93,19 @@ var checkThings;// = setInterval( updateUI, 250);
 updateUI();
 
 function updateUI(){
-    if( itemCount ==(flagCount +explodedCount) ) {
+    if( itemCount ==(flagCount +explodedCount) && gameRunning ) {
         //additional check that are those right
-        console.log("Victory check init");
+        let _flagsR = rightFlags();
+        console.log("Flagged right " + _flagsR + "/" + flagCount);
     }   
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
    
     let _teksti = "State:" +state+ "<br>";
-    //var _ff = [];
-    //_ff[0] = aaa();
-    //_teksti += delegatioLoopTest( 110, 0, aaa  );
-
     
-
-    for( i = 0; i<holdDown.length ;i++ ) {
-        _teksti += holdDown[i].tell()  + "<br>";
-    }
+    //DEBUG text
+    // for( i = 0; i<holdDown.length ;i++ ) {
+    //     _teksti += holdDown[i].tell()  + "<br>";
+    // }
     
     if( timeStart != 0 && gameRunning ) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerHTML = mines;
@@ -115,24 +113,6 @@ function updateUI(){
     logsId.innerHTML = _teksti;
     
 }
-
-
-//testing out function delegation
-function aaa( y, x ) {
-    let _str = "ö" + y +" xä" + x;
-    return _str
-}
-
-function delegatioLoopTest( y, x, action ) {
-    let t = "";
-    for( let cy = -1; cy < 2; cy++) {
-        for( let cx = -1; cx < 2; cx++) {
-            t += action( y+cy, x+cx );
-        }
-    }
-}
-
-//end of testing
 
 function newGameBtn() {
     initGame();
@@ -209,6 +189,18 @@ function initGame() {
 
         fieldCanvas.height = cellsize * rows;
         fieldCanvas.width = cellsize * cols;
+
+        //Setting field values to match current settings
+        if( document.getElementById("Trows") ) {
+            document.getElementById("Trows").value = rows;
+        }
+        if( document.getElementById("Tcols") ) {
+
+            document.getElementById("Tcols").value = cols;
+        }
+        if( document.getElementById("Titems")) {
+            document.getElementById("Titems").value = itemCount;
+        }
     
     initField();
 }
@@ -257,13 +249,14 @@ function Cheat() {
 }
 
 function ShareField() {
-    let _string = ""
-    for( let y = 0; y < field.length; y++ ) {
-        _string +=field[y];
-    }
-    //_string = _string.replace(/B/g, "1");
-    console.log( "MAP: " + _string );
-    console.log( "MAP: " + btoa(_string) );
+    // let _string = ""
+
+    // for( let y = 0; y < field.length; y++ ) {
+    //     _string +=field[y];
+    // }
+    // //_string = _string.replace(/B/g, "1");
+    // console.log( "MAP: " + _string );
+    // console.log( "MAP: " + btoa(_string) );
 }
 
 function initField() {
@@ -322,6 +315,19 @@ function revealBombs() {
         }
     }
 }
+
+function rightFlags() {
+    let _rightCount = 0;
+    for(let y = 0; y < rows; y++ ) {
+        for(let x = 0; x < cols; x++ ) {
+            if( adjacency[y].charAt(x)=="F" && field[y].charAt( x ) == "B") {
+                _rightCount++;
+            }
+        }
+    }
+    return _rightCount;
+}
+
 
 function adjacencyCell( y, x) {
     let _adjCount = 0;
@@ -672,6 +678,16 @@ function mouseUp(event) {
         }
         console.log("RESET RMB STATE + TRY FLAG " + state);
     }
+}
+
+function keyDown( event ) {
+    //let _keycode = event.keyCode;
+    //let _key = event.key;
+    if(event.key == "F2") {
+        event.preventDefault();
+        newGameBtn();
+    }
+    //console.log( event.key );
 }
 
 function releaseAllCells() {
