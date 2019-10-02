@@ -101,6 +101,9 @@ function updateUI(){
     if( settingsStrictMode && explodedCount > 0 && gameRunning ) {  //LOSE CONDITION FOR STRICT MODE
         // TODO MOVE THIS TO ACTUAL BOMB REVEAL someday
         console.log("BOOM BOOM KABOOM! GAME OVER");
+        revealBombs();
+        drawCanvasField();
+        //TODO Mark false flags!
         gameRunning = false;
 
     }
