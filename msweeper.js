@@ -32,7 +32,8 @@ var imgFull = document.getElementById("fullimage"); //RENAME
 
 var minetrackerId = document.getElementById("mineCount");
 var timetrackerId = document.getElementById("timeElapsed");
-var logsId = document.getElementById("history");
+var debuglogId = document.getElementById("debuglog");
+var historyId = document.getElementById("history");
 
 
 var fullPicCellSize = 16; //TODO take this to use (tile size in image)
@@ -75,6 +76,11 @@ var settingsSafeStart = true;
 var settingsStrictMode = false;
 var settingsDifficulty = "Beginner";
 
+//Styles (bgcolors) for win/lose/active 
+var settingsStyleWin = "gameWin";
+var settingsStyleFail = "gameFail";
+var settingsStyleActive = "gameActive";
+
 newGameBtn();
 
 sisalto.save();
@@ -105,18 +111,32 @@ function updateUI(){
         drawCanvasField();
         //TODO Mark false flags!
         gameRunning = false;
+        //gamearea.style.backgroundColor = settingsColorFail;
+        gamearea.className = settingsStyleFail;
+
 
     }
     if( itemCount ==(flagCount +explodedCount) && gameRunning ) {
         //additional check that are those right
         let _flagsR = rightFlags();
-        console.log("Flagged right " + _flagsR + "/" + flagCount);
+        let _unrevealedC = countUnrevealed();
+        console.log("Flagged right " + _flagsR + "/" + flagCount + " unrevealed tiles:" + _unrevealedC );
+        
+        if( settingsStrictMode && explodedCount == 0 && _unrevealedC == 0) {    //exploded check unecessary right now because set and check earlier
+            timeElapsed =  (Date.now() -timeStart)/1000;
+            console.log("V I C T O R Y :" + timeElapsed );
+            gameRunning = false;
+           //gamearea.style.backgroundColor = settingsColorWin;
+           gamearea.className = settingsStyleWin;
+        }
 
         if( !settingsStrictMode && _flagsR + explodedCount == itemCount ) {
             timeElapsed =  (Date.now() -timeStart)/1000;
             console.log("V I C T O R Y :" + timeElapsed );
             //TODO ADD SCORING FOR CASUAL MODE (for example 15s extra time per revealed BOMB)
             gameRunning = false;
+            gamearea.className = settingsStyleWin;
+            //gamearea.style.backgroundColor = settingsColorWin;
         }
     }   
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
@@ -131,7 +151,7 @@ function updateUI(){
     if( timeStart != 0 && gameRunning ) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerHTML = mines;
     timetrackerId.innerHTML = " Time: " + timeElapsed;
-    logsId.innerHTML = _teksti;
+    debuglogId.innerHTML = _teksti;
     
 }
 
@@ -139,6 +159,10 @@ function newGameBtn() {
     initGame();
     setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas on start
     firstClick = true; //TODO this to initGame??
+    //gamearea.style.backgroundColor = settingsColorActive;
+
+    gamearea.className = settingsStyleActive;
+
 
     //game related variables
     flagCount = 0;
@@ -355,6 +379,18 @@ function rightFlags() {
     return _rightCount;
 }
 
+function countUnrevealed() {
+    let _unrevealedCount = 0;
+    for(let y = 0; y < rows; y++ ) {
+        for(let x = 0; x < cols; x++ ) {
+            if( adjacency[y].charAt(x)=="9" ) {
+                _unrevealedCount++;
+            }
+        }
+    }
+    return _unrevealedCount;
+}
+
 
 function adjacencyCell( y, x) {
     let _adjCount = 0;
@@ -458,6 +494,8 @@ function countBombsAround( y, x) {
     }
     return _bombCount;
 }
+
+
 
 function holdCell( y, x ) {
     let _ok = false;

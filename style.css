@@ -23,8 +23,20 @@ input[type=number] {
 
 #game-area {
     padding: 40px;
-    background-color: rgb(255, 255, 160);
+    /* background-color: rgb(255, 255, 160); */
     user-select: none;
+}
+
+.gameActive{
+    background-color: rgb(255, 255, 160);
+}
+
+.gameWin{
+    background-color: rgb(64, 192, 64);
+}
+
+.gameFail{
+    background-color: rgb(192, 32, 32);
 }
 
 /* Below is modified from w3cschools floating tooltip example 
