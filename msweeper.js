@@ -70,6 +70,10 @@ var explodedCount = 0;
 var gameRunning = false;
 var firstClick = true;
 
+//Settings
+var settingsSafeStart = true;
+var settingsDifficulty = "Beginner";
+
 newGameBtn();
 
 sisalto.save();
@@ -144,24 +148,82 @@ function newGameBtn() {
 }
 
 function initGame() {
-    if( document.getElementById("Trows") ) {
-        rows = document.getElementById("Trows").value;
+
+    if( document.getElementsByName("difficulty") ){
+        let _elements = document.getElementsByName("difficulty");
+        for( let i = 0; i < _elements.length; i++ ) {
+            if( _elements[i].checked ) {
+                settingsDifficulty = _elements[i].value;
+            }
+        }
+        console.log(settingsDifficulty);
     }
-    if( document.getElementById("Tcols") ) {
-        cols = document.getElementById("Tcols").value;
-    }
-    fieldCanvas.height = cellsize * rows;
-    fieldCanvas.width = cellsize * cols;
     
-    itemCount = Math.floor( cols*rows*itemRatio /100);
+    switch( settingsDifficulty ) {
+        case "Custom":
+            if( document.getElementById("Trows") ) {
+                rows = document.getElementById("Trows").value;
+            }
+            if( document.getElementById("Tcols") ) {
+                cols = document.getElementById("Tcols").value;
+            }
+            if( document.getElementById("Titems")) {
+                let _items = document.getElementById("Titems").value;
+                itemCount = _items;
+                //console.log("ITEMS:"+_items);
+                if ( _items < 1 ) {
+                    itemCount = 1;
+                    //console.log("Mine value not accepted so it was set to " + itemCount )
+                } else if( _items > cols*rows-9) {
+                    //Math.floor( cols*rows*itemRatio /100);
+                    itemCount = cols*rows-9;
+                }
+            } else {
+                itemCount = Math.floor( cols*rows*itemRatio /100);
+                //console.log("ID NOT FOUND " + itemCount )
+            }
+            break;
+
+        case "Beginner":    //Earlier expert was 8x8
+        default:
+            rows = 9;
+            cols = 9;
+            itemCount = 10;
+            break;
+
+        case "Intermediate":
+
+            rows = 16;
+            cols = 16;
+            itemCount = 40;
+            break;
+
+        case "Expert": //Earlier expert was 24x24
+
+            rows = 16;  
+            cols = 30;
+            itemCount = 99; 
+            break;
+                    
+        }
+
+        fieldCanvas.height = cellsize * rows;
+        fieldCanvas.width = cellsize * cols;
     
     initField();
 }
 
 function newGame(y, x) {
 
-    //STUFF BELOW SHOULD BE DONE AFTER INITIAL CLICK (SAFE START & TIMER RESET)
-    placeMines(y, x);
+    if( document.getElementById("cbSafeStart")) {
+        settingsSafeStart = document.getElementById("cbSafeStart").checked;
+    } else {
+        settingsSafeStart = true;
+    }
+
+    if( settingsSafeStart ) {
+        placeMines(y, x);
+    } else placeMines( -10, -10 );
 
     //DEBUG (SHOW MINE LOCATIONS)
      for( y = 0; y < rows; y++ ) {
@@ -188,6 +250,7 @@ function CheatBtn() {
 function Cheat() {
     if( gameRunning ) {
         adjacencyFull();
+        revealBombs();
         drawCanvasField();
         gameRunning = false;
     }
@@ -245,6 +308,16 @@ function adjacencyFull() {
             let _adj = adjacencyCell( y, x);
             if( _adj < 9 ) {
                 adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
+            }
+        }
+    }
+}
+
+function revealBombs() {
+    for(let y = 0; y < rows; y++ ) {
+        for(let x = 0; x < cols; x++ ) {
+            if( adjacency[y].charAt(x)=="9" && field[y].charAt( x ) == "B") {
+                adjacency[y] = replaceAt( adjacency[y], x,"B");
             }
         }
     }

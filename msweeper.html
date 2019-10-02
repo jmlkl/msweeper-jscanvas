@@ -9,9 +9,22 @@
             <span id="mineCount"></span> <span id="timeElapsed"></span><br>
             <canvas id="piirtoAlue"></canvas>
         </div>
+        <div id="gameSettings">
+            <div id="gameSettingsDifficulty">
+                <input type="radio" name="difficulty" value="Beginner" id="dBeginner" checked><label for="dBeginner">Beginner</label>
+                <input type="radio" name="difficulty" value="Intermediate" id="dIntermediate"><label for="dIntermediate">Intermediate</label>
+                <input type="radio" name="difficulty" value="Expert" id="dExpert"><label for="dExpert">Expert</label>
+                <input type="radio" name="difficulty" value="Custom" id="dCustom"><label for="dCustom">Custom</label>
+            </div>
+            <div>
+                <input type="checkbox" name="strict" value="" id="cbStrict"><label for="cbStrict">One mine death</label>
+                <input type="checkbox" name="safestart" value="" id="cbSafeStart" checked ><label for="cbSafeStart">Safe start</label>
+            </div>
+        </div>
         <div>
             H<input type="number" id="Trows" value="8" min="8" max="40">
-            W<input type="number" id="Tcols" name="cols" value="8" min="8" max="80"><br>
+            W<input type="number" id="Tcols" name="cols" value="8" min="8" max="80">
+            Mines<input type="number" id="Titems" name="Titems" value="8" min="8" max="80"><br>
             <input type="button" name="btnNG" value="New Game" onclick="newGameBtn()">
             <input type="button" name="btnCheat" value="Cheat" onclick="CheatBtn()">
             <input type="button" name="btnGiveMapData" value="Give Code" onclick="ShareField()">
