@@ -17,18 +17,20 @@
                 <input type="radio" name="difficulty" value="Custom" id="dCustom"><label for="dCustom">Custom</label>
             </div>
             <div>
-                <input type="checkbox" name="strict" value="" id="cbStrict"><label for="cbStrict">One mine death</label>
+                <input type="checkbox" name="strict" value="" id="cbStrict"><label for="cbStrict" class="tooltip">Strict mode
+                <span class="tooltiptext"><ul><li>Revealing bomb ends game</li><li>All non-bomb tiles have to be revelead</li></ul></span></label>
                 <input type="checkbox" name="safestart" value="" id="cbSafeStart" checked ><label for="cbSafeStart">Safe start</label>
+            </div>
+            <div id="gameSettingsCustomSettings">
+                H<input type="number" id="Trows" value="8" min="4" max="512" onchange="setCustom()">
+                W<input type="number" id="Tcols" name="cols" value="8" min="4" max="512" onchange="setCustom()">
+                Mines<input type="number" id="Titems" name="Titems" value="10" onchange="setCustom()">
+                <input type="button" name="btnNG" value="New Game" onclick="newGameBtn()">
+                <input type="button" name="btnCheat" value="Cheat" onclick="CheatBtn()">
+                <input type="button" name="btnGiveMapData" value="Give Code" onclick="ShareField()">
             </div>
         </div>
         <div>
-            H<input type="number" id="Trows" value="8" min="8" max="40">
-            W<input type="number" id="Tcols" name="cols" value="8" min="8" max="80">
-            Mines<input type="number" id="Titems" name="Titems" value="10"><br>
-            <input type="button" name="btnNG" value="New Game" onclick="newGameBtn()">
-            <input type="button" name="btnCheat" value="Cheat" onclick="CheatBtn()">
-            <input type="button" name="btnGiveMapData" value="Give Code" onclick="ShareField()">
-            <br />
             <div id="history"></div>
         </div>
         <script src="msweeper.js" type="text/javascript"></script>

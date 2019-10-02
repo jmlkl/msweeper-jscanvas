@@ -72,6 +72,7 @@ var firstClick = true;
 
 //Settings
 var settingsSafeStart = true;
+var settingsStrictMode = false;
 var settingsDifficulty = "Beginner";
 
 newGameBtn();
@@ -92,11 +93,28 @@ document.addEventListener("keydown", keyDown );
 var checkThings;// = setInterval( updateUI, 250);
 updateUI();
 
+function setCustom() {
+    document.getElementById("dCustom").checked = true;
+}
+
 function updateUI(){
+    if( settingsStrictMode && explodedCount > 0 && gameRunning ) {  //LOSE CONDITION FOR STRICT MODE
+        // TODO MOVE THIS TO ACTUAL BOMB REVEAL someday
+        console.log("BOOM BOOM KABOOM! GAME OVER");
+        gameRunning = false;
+
+    }
     if( itemCount ==(flagCount +explodedCount) && gameRunning ) {
         //additional check that are those right
         let _flagsR = rightFlags();
         console.log("Flagged right " + _flagsR + "/" + flagCount);
+
+        if( !settingsStrictMode && _flagsR + explodedCount == itemCount ) {
+            timeElapsed =  (Date.now() -timeStart)/1000;
+            console.log("V I C T O R Y :" + timeElapsed );
+            //TODO ADD SCORING FOR CASUAL MODE (for example 15s extra time per revealed BOMB)
+            gameRunning = false;
+        }
     }   
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
    
@@ -164,7 +182,7 @@ function initGame() {
             }
             break;
 
-        case "Beginner":    //Earlier expert was 8x8
+        case "Beginner":    //Earlier beginner was 8x8
         default:
             rows = 9;
             cols = 9;
@@ -212,10 +230,16 @@ function newGame(y, x) {
     } else {
         settingsSafeStart = true;
     }
+    
+    if( document.getElementById("cbStrict")) {
+        settingsStrictMode = document.getElementById("cbStrict").checked;
+    } else settingsStrictMode = false;
 
     if( settingsSafeStart ) {
         placeMines(y, x);
     } else placeMines( -10, -10 );
+
+    if( settingsStrictMode )
 
     //DEBUG (SHOW MINE LOCATIONS)
      for( y = 0; y < rows; y++ ) {
@@ -584,6 +608,11 @@ function mouseDown(event) {
     
     }
 
+    if( !gameRunning && !firstClick ) {
+        releaseAllCells();
+        state = 0;
+    }
+
     console.log( state );
 }
 
@@ -627,6 +656,11 @@ function mouseUp(event) {
     var _cell = getCellPos( fieldCanvas, event );
     var _insideC = insideCanvas( fieldCanvas, event );
     
+    if( !gameRunning && !firstClick ) {
+        releaseAllCells();
+        state = 0;
+    }
+
     // if( !_inC ) {
     //     console.log("release outside canvas");
     // }
