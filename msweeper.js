@@ -15,7 +15,6 @@ function cell() {
     }
 };
 
-
 var fieldCanvas = document.getElementById("piirtoAlue");
 var gamearea = document.getElementById("game-area");
 var cellsize = 16;

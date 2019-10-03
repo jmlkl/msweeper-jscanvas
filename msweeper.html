@@ -4,6 +4,7 @@
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
+        <div id="messages" class="message-hide"></div>
         <div id="game-area">
             <img src="combine-set05.png" id="fullimage">
             <span id="mineCount"></span> <span id="timeElapsed"></span><br>
@@ -18,8 +19,10 @@
             </div>
             <div>
                 <input type="checkbox" name="strict" value="" id="cbStrict"><label for="cbStrict" class="tooltip">Strict mode
-                <span class="tooltiptext"><ul><li>Revealing bomb ends game</li><li>All non-bomb tiles have to be revelead</li></ul></span></label>
-                <input type="checkbox" name="safestart" value="" id="cbSafeStart" checked ><label for="cbSafeStart">Safe start</label>
+                <span class="tooltiptext"><ul><li>Revealing bomb ends game</li><li>All bombs have to be flagged</li><li>All non-bomb tiles have to be revelead</li></ul></span></label>
+                <input type="checkbox" name="safestart" value="" id="cbSafeStart" checked ><label for="cbSafeStart" class="tooltip">Safe start
+                <span class="tooltiptext"><ul><li>When revealing first tile it will be empty</li></ul></span>
+                </label>
             </div>
             <div id="gameSettingsCustomSettings">
                 H<input type="number" id="Trows" value="8" min="4" max="512" onchange="setCustom()">
