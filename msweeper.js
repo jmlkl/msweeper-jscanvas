@@ -218,8 +218,12 @@ function initGame() {
                 // Big area fix
                 // TODO make visible message for player, when this happens!
                 if(settingsCustomCellProtection && cols*rows > settingsCustomCellLimit) {
-                    itemCount = Math.floor( cols * rows * settingsCustomCellItemRatio / 100 );
-                    console.log("Mine amount too low for this big game area, setting mine count to " + itemCount );
+                    let _minimumCount = Math.floor( cols * rows * settingsCustomCellItemRatio / 100 );
+                    if( itemCount < _minimumCount ) {
+                        itemCount = _minimumCount;
+                        console.log("Mine amount too low for this big game area, setting mine count to " + itemCount );
+                    }
+                    
                 }
             } else {
                 itemCount = Math.floor( cols*rows*itemRatio /100);

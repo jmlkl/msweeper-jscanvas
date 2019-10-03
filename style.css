@@ -7,7 +7,7 @@ canvas {
     /* background-color: silver; */
 }
 input[type=number] {
-    width: 40px;
+    width: 60px;
 }
 #orange {
     display: none;
