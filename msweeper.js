@@ -76,6 +76,17 @@ var settingsSafeStart = true;
 var settingsStrictMode = false;
 var settingsDifficulty = "Beginner";
 
+
+//Settings for custom sized area
+//when it changes bomb amount
+//this are made to fix certain issues
+//with recursion that did start to happen
+//after area was over 5000 cells and bomb count was
+//low
+var settingsCustomCellProtection = true;
+var settingsCustomCellLimit = 5000;
+var settingsCustomCellItemRatio = 10;
+
 //Styles (bgcolors) for win/lose/active 
 var settingsStyleWin = "gameWin";
 var settingsStyleFail = "gameFail";
@@ -202,6 +213,13 @@ function initGame() {
                 } else if( _items > cols*rows-9) {
                     //Math.floor( cols*rows*itemRatio /100);
                     itemCount = cols*rows-9;
+                }
+
+                // Big area fix
+                // TODO make visible message for player, when this happens!
+                if(settingsCustomCellProtection && cols*rows > settingsCustomCellLimit) {
+                    itemCount = Math.floor( cols * rows * settingsCustomCellItemRatio / 100 );
+                    console.log("Mine amount too low for this big game area, setting mine count to " + itemCount );
                 }
             } else {
                 itemCount = Math.floor( cols*rows*itemRatio /100);
