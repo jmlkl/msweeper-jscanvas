@@ -30,7 +30,16 @@
                 Mines<input type="number" id="Titems" name="Titems" value="10" onchange="setCustom()">
                 <input type="button" name="btnNG" value="New Game" onclick="newGameBtn()">
                 <input type="button" name="btnCheat" value="Cheat" onclick="CheatBtn()">
-                <input type="button" name="btnGiveMapData" value="Give Code" onclick="ShareField()">
+                <input type="button" name="btnGiveMapData" value="Give Code" onclick="ShareField()" style="visibility:hidden"><br />
+                <label for="drawSize"></label>
+                <select id="drawSize">
+                    <option value="25">25%</option>
+                    <option value="50">50%</option>
+                    <option value="100" selected>100%</option>
+                    <option value="200">200%</option>
+                    <option value="300">300%</option>
+                    <option value="400">400%</option>
+                </select>
             </div>
         </div>
         <div>

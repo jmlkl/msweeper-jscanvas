@@ -17,6 +17,7 @@ function cell() {
 
 var fieldCanvas = document.getElementById("piirtoAlue");
 var gamearea = document.getElementById("game-area");
+const cellsizeOriginal = 16;
 var cellsize = 16;
 var cols = 16;
 var rows = 32;
@@ -25,6 +26,7 @@ var itemCount = Math.floor( cols*rows*itemRatio /100);
 
 
 var sisalto = fieldCanvas.getContext("2d");
+
 
 //Images
 var imgFull = document.getElementById("fullimage"); //RENAME
@@ -261,6 +263,13 @@ function initGame() {
             break;
                     
         }
+
+        if( document.getElementById("drawSize")) {
+            cellsize = cellsizeOriginal * document.getElementById("drawSize").value/100;
+            console.log( cellsize );
+        }
+
+        
 
         fieldCanvas.height = cellsize * rows;
         fieldCanvas.width = cellsize * cols;
@@ -581,7 +590,7 @@ function drawCanvasCell( y, x ) {
         //empty, numbered and unrevealed tile find from file and draw
         let _tx = _num % fullPicTilesX;
         let _ty = Math.floor(_num/fullPicTilesX);
-
+        sisalto.imageSmoothingEnabled = false;  //REMOVE IMAGE SMOOTHING
         // sisalto.drawImage( imgFull, _tx*cellsize, _ty*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize);
         sisalto.drawImage( imgFull, _tx*fullPicCellSize, _ty*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize);
     } else {
