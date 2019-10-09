@@ -27,6 +27,37 @@ input[type=number] {
     user-select: none;
 }
 
+.messages {
+    min-width: 100%;
+}
+
+.message {
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    text-align: left;
+
+    border-radius: 4px;
+    margin: 5px;
+    padding: 5px;
+    width: 400px;
+    min-height: 50px;
+    opacity: 0.6;
+    
+}
+
+.messageWarning {
+    background-color: rgb(255, 0, 0);
+    color: white;
+    text-align: left;
+
+    border-radius: 4px;
+    margin: 5px;
+    padding: 5px;
+    width: 400px;
+    min-height: 50px;
+    opacity: 1;
+}
+
 .message-visible {
     background-color: black;
     width: 100%;

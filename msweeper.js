@@ -35,7 +35,7 @@ var debuglogId = document.getElementById("debuglog");
 var historyId = document.getElementById("history");
 
 
-var fullPicCellSize = 16; //TODO take this to use (tile size in image)
+var fullPicCellSize = 16; //TODO take this to use (tile size in image) UPDATE: works, but needs testing
 var fullPicTilesX = 4;
 var fullPicTilesY = 4;
 
@@ -105,6 +105,10 @@ gamearea.addEventListener("mouseleave", mouseLeave );
 document.addEventListener("keydown", keyDown );
 //canvas.addEventListener("mouseleave", blur );   //addd for testing
 
+var msgSystem = new messageSystem();
+msgSystem.messageMasterElement = document.getElementById("messages");
+msgSystem.messageDefaultClass = "message";
+msgSystem.messageIdPrefix = "message";
 
 var checkThings;// = setInterval( updateUI, 250);
 updateUI();
@@ -116,7 +120,10 @@ function setCustom() {
 function updateUI(){
     if( settingsStrictMode && explodedCount > 0 && gameRunning ) {  //LOSE CONDITION FOR STRICT MODE
         // TODO MOVE THIS TO ACTUAL BOMB REVEAL someday
-        console.log("BOOM BOOM KABOOM! GAME OVER");
+        let _msg = "GAME OVER<br /> Time:" + timeElapsed + "s Mines left:" + (itemCount -(flagCount +explodedCount)) + "/" + itemCount + "<br />";
+        //AddMessage( msgSystem, _msg, 5000 );
+        msgSystem.AddMessage( _msg, 5000 );
+        //console.log("BOOM BOOM KABOOM! GAME OVER");
         revealBombs();
         drawCanvasField();
         //TODO Mark false flags!
@@ -219,8 +226,10 @@ function initGame() {
                 if(settingsCustomCellProtection && cols*rows > settingsCustomCellLimit) {
                     let _minimumCount = Math.floor( cols * rows * settingsCustomCellItemRatio / 100 );
                     if( itemCount < _minimumCount ) {
+                        let _msg = "Set mine amount "+itemCount+"  was too low for this big game area, setting mine count to " + _minimumCount;
+                        msgSystem.AddMessage( _msg, 10000, "messageWarning" );
                         itemCount = _minimumCount;
-                        console.log("Mine amount too low for this big game area, setting mine count to " + itemCount );
+                        console.log(_msg );
                     }
                     
                 }
@@ -566,27 +575,31 @@ function drawCanvasCell( y, x ) {
     let _char = _row.charAt( x );
     let _num = Number(_char);
 
+
+
     if( _num <= 9) { 
         //empty, numbered and unrevealed tile find from file and draw
         let _tx = _num % fullPicTilesX;
         let _ty = Math.floor(_num/fullPicTilesX);
-        sisalto.drawImage( imgFull, _tx*cellsize, _ty*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize);
+
+        // sisalto.drawImage( imgFull, _tx*cellsize, _ty*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize);
+        sisalto.drawImage( imgFull, _tx*fullPicCellSize, _ty*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize);
     } else {
         switch( _char ) {
             //other tiles (bomb, flag...)
             //TODO Structure this properly
             case "A":
-                sisalto.drawImage( imgFull, 2*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 2*fullPicCellSize, 2*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
             case "B":
-                sisalto.drawImage( imgFull, 3*cellsize, 2*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 3*fullPicCellSize, 2*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
             case "C":
-                sisalto.drawImage( imgFull, 0*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 0*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
             case "F":
             default:
-                sisalto.drawImage( imgFull, 3*cellsize, 3*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                sisalto.drawImage( imgFull, 3*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
         }
     }
