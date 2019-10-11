@@ -55,6 +55,12 @@ function messageSystem() {
             }
         }
     };
+
+    this.FlushAll = function () {
+        while( this.messages.length > 0 ) {
+            this.DeleteRecent();
+        }
+    }
 };
 
 function messageContainer() {

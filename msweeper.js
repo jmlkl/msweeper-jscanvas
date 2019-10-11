@@ -93,8 +93,6 @@ var settingsStyleWin = "gameWin";
 var settingsStyleFail = "gameFail";
 var settingsStyleActive = "gameActive";
 
-newGameBtn();
-
 sisalto.save();
 
 
@@ -112,6 +110,8 @@ msgSystem.messageMasterElement = document.getElementById("messages");
 msgSystem.messageDefaultClass = "message";
 msgSystem.messageIdPrefix = "message";
 
+newGameBtn();
+
 var checkThings;// = setInterval( updateUI, 250);
 updateUI();
 
@@ -122,12 +122,13 @@ function setCustom() {
 function updateUI(){
     if( settingsStrictMode && explodedCount > 0 && gameRunning ) {  //LOSE CONDITION FOR STRICT MODE
         // TODO MOVE THIS TO ACTUAL BOMB REVEAL someday
-        let _msg = "GAME OVER<br /> Time:" + timeElapsed + "s Mines left:" + (itemCount -(flagCount +explodedCount)) + "/" + itemCount + "<br />";
-        //AddMessage( msgSystem, _msg, 5000 );
-        msgSystem.AddMessage( _msg, 5000 );
         //console.log("BOOM BOOM KABOOM! GAME OVER");
         revealBombs();
+        let _falseFlags = revealFalseFlags();
         drawCanvasField();
+        let _msg = "GAME OVER<br /> Time:" + timeElapsed + "s Mines left:" + (itemCount -(flagCount +explodedCount)+_falseFlags) + "/" + itemCount + "<br />";
+        //AddMessage( msgSystem, _msg, 5000 );
+        msgSystem.AddMessage( _msg );
         //TODO Mark false flags!
         gameRunning = false;
         //gamearea.style.backgroundColor = settingsColorFail;
@@ -141,21 +142,29 @@ function updateUI(){
         let _unrevealedC = countUnrevealed();
         console.log("Flagged right " + _flagsR + "/" + flagCount + " unrevealed tiles:" + _unrevealedC );
         
+
+        //WIN MESSAGE(S)    //TODO Move win message to own function, after it is clear what is needed for it
         if( settingsStrictMode && explodedCount == 0 && _unrevealedC == 0) {    //exploded check unecessary right now because set and check earlier
             timeElapsed =  (Date.now() -timeStart)/1000;
-            console.log("V I C T O R Y :" + timeElapsed );
-            gameRunning = false;
-           //gamearea.style.backgroundColor = settingsColorWin;
-           gamearea.className = settingsStyleWin;
-        }
-
-        if( !settingsStrictMode && _flagsR + explodedCount == itemCount ) {
-            timeElapsed =  (Date.now() -timeStart)/1000;
-            console.log("V I C T O R Y :" + timeElapsed );
-            //TODO ADD SCORING FOR CASUAL MODE (for example 15s extra time per revealed BOMB)
+            let _msg = "V I C T O R Y :" + timeElapsed;
+            console.log( _msg );
+            msgSystem.AddMessage( _msg, undefined, "messagePositive")
             gameRunning = false;
             gamearea.className = settingsStyleWin;
-            //gamearea.style.backgroundColor = settingsColorWin;
+        }
+        //duplicate with above (except for check parameters)
+        if( !settingsStrictMode && _flagsR + explodedCount == itemCount ) {
+            //TODO ADD SCORING FOR CASUAL MODE (for example 15s extra time per revealed BOMB)
+            let _timePerBomb = 15;
+            let _timePlay = (Date.now() -timeStart)/1000;;
+            let _timeExploded = explodedCount * _timePerBomb;  //FIXME Hardcoded base scoring value
+            timeElapsed =  _timePlay+_timeExploded;
+            let _msg = "V I C T O R Y : " +timeElapsed+ "s <br />Playtime:" + _timePlay + "<br />+ Extra time from bombs: " + _timeExploded +"s (" + explodedCount +" &times; "+ _timePerBomb +"s)";
+            console.log( _msg );
+            msgSystem.AddMessage( _msg, undefined, "messagePositive")
+            gameRunning = false;
+            gamearea.className = settingsStyleWin;
+
         }
     }   
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
@@ -175,6 +184,7 @@ function updateUI(){
 }
 
 function newGameBtn() {
+    msgSystem.FlushAll();
     initGame();
     setTimeout( drawCanvasField, 10);   // fix for firefox refresh & blank canvas on start
     firstClick = true; //TODO this to initGame??
@@ -229,7 +239,7 @@ function initGame() {
                     let _minimumCount = Math.floor( cols * rows * settingsCustomCellItemRatio / 100 );
                     if( itemCount < _minimumCount ) {
                         let _msg = "Set mine amount "+itemCount+"  was too low for this big game area, setting mine count to " + _minimumCount;
-                        msgSystem.AddMessage( _msg, 10000, "messageWarning" );
+                        msgSystem.AddMessage( _msg, undefined, "messageWarning" );
                         itemCount = _minimumCount;
                         console.log(_msg );
                     }
@@ -404,6 +414,20 @@ function revealBombs() {
             }
         }
     }
+}
+
+function revealFalseFlags() {
+    let _falseCount = 0;
+    for(let y = 0; y < rows; y++ ) {
+        for(let x = 0; x < cols; x++ ) {
+            if( adjacency[y].charAt(x)=="F" && field[y].charAt( x ) != "B") {
+                adjacency[y] = replaceAt( adjacency[y], x,"D");
+                _falseCount++;
+            }
+        }
+    }
+    
+    return _falseCount;
 }
 
 function rightFlags() {
@@ -606,6 +630,9 @@ function drawCanvasCell( y, x ) {
             case "C":
                 sisalto.drawImage( imgFull, 0*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
             break;
+            case "D":
+                    sisalto.drawImage( imgFull, 1*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
+                    break;
             case "F":
             default:
                 sisalto.drawImage( imgFull, 3*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
