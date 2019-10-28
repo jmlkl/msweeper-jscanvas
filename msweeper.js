@@ -599,39 +599,14 @@ function releaseCell( y, x) {
 function drawCanvasCell( y, x ) {
     let _row = adjacency[y]; 
     let _char = _row.charAt( x );
-    let _num = Number(_char);
+    let _num = fieldNums.indexOf( _char );
+    //console.log( "ch:" + _char + " num:" + fieldNums[_num]);
 
+    let _tx = _num % fullPicTilesX;
+    let _ty = Math.floor(_num/fullPicTilesX);
+    sisalto.imageSmoothingEnabled = false;  //REMOVE IMAGE SMOOTHING
 
-
-    if( _num <= 9) { 
-        //empty, numbered and unrevealed tile find from file and draw
-        let _tx = _num % fullPicTilesX;
-        let _ty = Math.floor(_num/fullPicTilesX);
-        sisalto.imageSmoothingEnabled = false;  //REMOVE IMAGE SMOOTHING
-        // sisalto.drawImage( imgFull, _tx*cellsize, _ty*cellsize, cellsize, cellsize, x*cellsize, y*cellsize, cellsize , cellsize);
-        sisalto.drawImage( imgFull, _tx*fullPicCellSize, _ty*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize);
-    } else {
-        switch( _char ) {
-            //other tiles (bomb, flag...)
-            //TODO Structure this properly
-            case "A":
-                sisalto.drawImage( imgFull, 2*fullPicCellSize, 2*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
-            break;
-            case "B":
-                sisalto.drawImage( imgFull, 3*fullPicCellSize, 2*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
-            break;
-            case "C":
-                sisalto.drawImage( imgFull, 0*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
-            break;
-            case "D":
-                    sisalto.drawImage( imgFull, 1*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
-                    break;
-            case "F":
-            default:
-                sisalto.drawImage( imgFull, 3*fullPicCellSize, 3*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize); //FIXME hardcoded
-            break;
-        }
-    }
+    sisalto.drawImage( imgFull, _tx*fullPicCellSize, _ty*fullPicCellSize, fullPicCellSize, fullPicCellSize, x*cellsize, y*cellsize, cellsize , cellsize);
 }
 
 function drawCanvasField() {
