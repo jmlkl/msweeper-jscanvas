@@ -15,12 +15,13 @@
                 <input type="radio" name="difficulty" value="Beginner" id="dBeginner" checked><label for="dBeginner">Beginner</label>
                 <input type="radio" name="difficulty" value="Intermediate" id="dIntermediate"><label for="dIntermediate">Intermediate</label>
                 <input type="radio" name="difficulty" value="Expert" id="dExpert"><label for="dExpert">Expert</label>
-                <input type="radio" name="difficulty" value="Custom" id="dCustom"><label for="dCustom">Custom</label>
+                <label for="dCustom" class="tooltip"><input type="radio" name="difficulty" value="Custom" id="dCustom">Custom
+                <span class="tooltiptext"><ul><li>Set mine amount to 0 if you want calculated mine amount</li></ul></span></label>
             </div>
             <div>
-                <input type="checkbox" name="strict" value="" id="cbStrict"><label for="cbStrict" class="tooltip">Strict mode
+                <label for="cbStrict" class="tooltip"><input type="checkbox" name="strict" value="" id="cbStrict">Strict mode
                 <span class="tooltiptext"><ul><li>Revealing bomb ends game</li><li>All bombs have to be flagged</li><li>All non-bomb tiles have to be revelead</li></ul></span></label>
-                <input type="checkbox" name="safestart" value="" id="cbSafeStart" checked ><label for="cbSafeStart" class="tooltip">Safe start
+                <label for="cbSafeStart" class="tooltip"><input type="checkbox" name="safestart" value="" id="cbSafeStart" checked >Safe start
                 <span class="tooltiptext"><ul><li>When revealing first tile it will be empty</li></ul></span>
                 </label>
             </div>

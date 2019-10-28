@@ -217,7 +217,8 @@ function initGame() {
                 itemCount = _items;
                 //console.log("ITEMS:"+_items);
                 if ( _items < 1 ) {
-                    itemCount = 1;
+                    setItemsPercentage( 0, false );
+                    //itemCount = 1;
                     //console.log("Mine value not accepted so it was set to " + itemCount )
                 } else if( _items > cols*rows-9) {
                     //Math.floor( cols*rows*itemRatio /100);
@@ -225,14 +226,8 @@ function initGame() {
                 }
 
                 // Big area fix
-                // TODO make visible message for player, when this happens!
                 if(settingsCustomCellProtection && cols*rows > settingsCustomCellLimit) {
-                    let _minimumCount = Math.floor( cols * rows * settingsCustomCellItemRatio / 100 );
-                    if( itemCount < _minimumCount ) {
-                        let _msg = "Set mine amount "+itemCount+"  was too low for this big game area, setting mine count to " + _minimumCount;
-                        msgSystem.AddMessage( _msg, undefined, "messageWarning" );
-                        itemCount = _minimumCount;
-                    }
+                    setItemsPercentage();
                     
                 }
             } else {
@@ -284,6 +279,20 @@ function initGame() {
         }
     
     initField();
+}
+
+function setItemsPercentage( ratio=0, showMessage=true ) {
+    let _minimumCount = Math.floor(cols * rows * settingsCustomCellItemRatio / 100);
+    if( ratio > 0 && ratio < 100 ) {
+        _minimumCount = Math.floor(cols * rows * ratio / 100);
+    } 
+    if (itemCount < _minimumCount) {
+        if( showMessage ) {
+            let _msg = "Set mine amount " + itemCount + "  was too low for this game area, setting mine count to " + _minimumCount;
+            msgSystem.AddMessage(_msg, undefined, "messageWarning");
+        }
+        itemCount = _minimumCount;
+    }
 }
 
 function newGame(y, x) {
