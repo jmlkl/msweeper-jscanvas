@@ -8,9 +8,6 @@ var mouse={
 function cell() {
     this.y = undefined;
     this.x = undefined;
-    this.tell = function() {
-        return "x:"+this.x +" y:" + this.y;
-    };
     this.release = function() {
         releaseCell( this.y, this.x );
         //console.log("Trying method way!");
@@ -78,6 +75,7 @@ var firstClick = true;
 var settingsSafeStart = true;
 var settingsStrictMode = false;
 var settingsDifficulty = "Beginner";
+const settingsTimePerBomb = 15;   //non strict mode scoring (additional time)
 
 
 //Settings for custom sized area
@@ -137,11 +135,12 @@ function updateUI(){
         gamearea.className = settingsStyleFail;
 
 
-    }
-    if( itemCount ==(flagCount +explodedCount) && gameRunning ) {
+    }    
+    let _unrevealedC = countUnrevealed();   //This should be global or atleast here outside of scope below
+    if( gameRunning && itemCount ==(flagCount +explodedCount +_unrevealedC) && mouseState==0) {  //mouse state added to check --> else it would ignore hold down cells 
+        console.log("Time based win ping!");
         //additional check that are those right
         let _flagsR = rightFlags();
-        let _unrevealedC = countUnrevealed();
         //console.log("Flagged right " + _flagsR + "/" + flagCount + " unrevealed tiles:" + _unrevealedC );
         
 
@@ -149,20 +148,16 @@ function updateUI(){
         if( settingsStrictMode && explodedCount == 0 && _unrevealedC == 0) {    //exploded check unecessary right now because set and check earlier
             timeElapsed =  (Date.now() -timeStart)/1000;
             let _msg = "V I C T O R Y :" + timeElapsed;
-            //console.log( _msg );
             msgSystem.AddMessage( _msg, undefined, "messagePositive")
             gameRunning = false;
             gamearea.className = settingsStyleWin;
         }
         //duplicate with above (except for check parameters)
-        if( !settingsStrictMode && _flagsR + explodedCount == itemCount ) {
-            //TODO ADD SCORING FOR CASUAL MODE (for example 15s extra time per revealed BOMB)
-            let _timePerBomb = 15;
+        if( !settingsStrictMode && _flagsR + explodedCount + _unrevealedC == itemCount ) {
             let _timePlay = (Date.now() -timeStart)/1000;;
-            let _timeExploded = explodedCount * _timePerBomb;  //FIXME Hardcoded base scoring value
+            let _timeExploded = explodedCount * settingsTimePerBomb;
             timeElapsed =  _timePlay+_timeExploded;
-            let _msg = "V I C T O R Y : " +timeElapsed+ "s <br />Playtime:" + _timePlay + "<br />+ Extra time from bombs: " + _timeExploded +"s (" + explodedCount +" &times; "+ _timePerBomb +"s)";
-            //console.log( _msg );
+            let _msg = "V I C T O R Y : " +timeElapsed+ "s <br />Playtime:" + _timePlay + "<br />+ Extra time from bombs: " + _timeExploded +"s (" + explodedCount +" &times; "+ settingsTimePerBomb +"s)";
             msgSystem.AddMessage( _msg, undefined, "messagePositive")
             gameRunning = false;
             gamearea.className = settingsStyleWin;
@@ -172,11 +167,6 @@ function updateUI(){
     let mines = "Mines left:" + (itemCount -(flagCount +explodedCount)) + " Exploded:" + explodedCount;
    
     let _teksti = "Mouse state:" +mouseState;
-    
-    //DEBUG text
-    // for( i = 0; i<holdDown.length ;i++ ) {
-    //     _teksti += holdDown[i].tell()  + "<br>";
-    // }
     
     if( timeStart != 0 && gameRunning ) timeElapsed = Math.floor( (Date.now() -timeStart)/1000);
     minetrackerId.innerText = mines;
@@ -193,7 +183,6 @@ function newGameBtn() {
     //gamearea.style.backgroundColor = settingsColorActive;
 
     gamearea.className = settingsStyleActive;
-
 
     //game related variables
     flagCount = 0;
@@ -260,14 +249,12 @@ function initGame() {
             break;
 
         case "Intermediate":
-
             rows = 16;
             cols = 16;
             itemCount = 40;
             break;
 
         case "Expert": //Earlier expert was 24x24
-
             rows = 16;  
             cols = 30;
             itemCount = 99; 
