@@ -20,7 +20,7 @@ const cellsizeOriginal = 16;
 var cellsize = 16;
 var cols = 16;
 var rows = 32;
-var itemRatio = 16;
+const itemRatio = 16;
 var itemCount = Math.floor( cols*rows*itemRatio /100);
 
 
@@ -217,7 +217,7 @@ function initGame() {
                 itemCount = _items;
                 //console.log("ITEMS:"+_items);
                 if ( _items < 1 ) {
-                    setItemsPercentage( 0, false );
+                    setItemsPercentage( itemRatio, false );
                     //itemCount = 1;
                     //console.log("Mine value not accepted so it was set to " + itemCount )
                 } else if( _items > cols*rows-9) {
