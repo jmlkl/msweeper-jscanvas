@@ -123,8 +123,9 @@ function updateUI(){
     if( settingsStrictMode && explodedCount > 0 && gameRunning ) {  //LOSE CONDITION FOR STRICT MODE
         // TODO MOVE THIS TO ACTUAL BOMB REVEAL someday
         //console.log("BOOM BOOM KABOOM! GAME OVER");
-        revealBombs();
-        let _falseFlags = revealFalseFlags();
+        iterateField( subRevealBombs );
+        //revealBombs();
+        let _falseFlags = iterateField( subRevealFalseFlags );
         drawCanvasField();
         let _msg = "GAME OVER<br /> Time:" + timeElapsed + "s Mines left:" + (itemCount -(flagCount +explodedCount)+_falseFlags) + "/" + itemCount + "<br />";
         //AddMessage( msgSystem, _msg, 5000 );
@@ -136,11 +137,11 @@ function updateUI(){
 
 
     }    
-    let _unrevealedC = countUnrevealed();   //This should be global or atleast here outside of scope below
+    let _unrevealedC = countValuedCell("9");   //This should be global or atleast here outside of scope below
     if( gameRunning && itemCount ==(flagCount +explodedCount +_unrevealedC) && mouseState==0) {  //mouse state added to check --> else it would ignore hold down cells 
         console.log("Time based win ping!");
         //additional check that are those right
-        let _flagsR = rightFlags();
+        let _flagsR = iterateField( subRightFlags );
         //console.log("Flagged right " + _flagsR + "/" + flagCount + " unrevealed tiles:" + _unrevealedC );
         
 
@@ -337,8 +338,10 @@ function CheatBtn() {
 
 function Cheat() {
     if( gameRunning ) {
-        adjacencyFull();
-        revealBombs();
+        //adjacencyFull();
+        iterateField( subAdjacencyFull );
+        //revealBombs();
+        iterateField( subRevealBombs );
         drawCanvasField();
         gameRunning = false;
     }
@@ -391,70 +394,62 @@ function placeMines( y, x ) {
     }
 }
 
-function adjacencyFull() {
-    for(let y = 0; y < rows; y++ ) {
+function iterateField( subFunction ) {
+    let _count = 0;
+    for(let y = 0; y < rows; y++ ) {   
         for(let x = 0; x < cols; x++ ) {
-            let _adj = adjacencyCell( y, x);
-            if( _adj < 9 ) {
-                adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
-            }
+            _count += subFunction(y,x);
         }
+    }
+    return _count;
+}
+
+function subAdjacencyFull( y, x ) {
+    let _adj = adjacencyCell( y, x);
+    if( _adj < 9 ) {
+        adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
     }
 }
 
-function revealBombs() {
-    for(let y = 0; y < rows; y++ ) {
-        for(let x = 0; x < cols; x++ ) {
-            if( adjacency[y].charAt(x)=="9" && field[y].charAt( x ) == "B") {
-                adjacency[y] = replaceAt( adjacency[y], x,"B");
-            }
-        }
+function subRevealBombs( y, x) {
+    if( adjacency[y].charAt(x)=="9" && field[y].charAt( x ) == "B") {
+        adjacency[y] = replaceAt( adjacency[y], x,"B");
     }
 }
 
-function revealFalseFlags() {
-    let _falseCount = 0;
-    for(let y = 0; y < rows; y++ ) {
+function subRevealFalseFlags( y, x) {
+    let _value = 0;
+    if( adjacency[y].charAt(x)=="F" && field[y].charAt( x ) != "B") {
+        adjacency[y] = replaceAt( adjacency[y], x,"D");
+        _value = 1;
+    }
+    return _value;
+}
+
+function subRightFlags( y, x ) {
+    let _value = 0;
+    if( adjacency[y].charAt(x)=="F" && field[y].charAt( x ) == "B") {
+        _value = 1;
+    }
+    return _value;
+}
+
+function countValuedCell( char ) {
+    let _count = 0
+    for(let y = 0; y < rows; y++ ) {    
         for(let x = 0; x < cols; x++ ) {
-            if( adjacency[y].charAt(x)=="F" && field[y].charAt( x ) != "B") {
-                adjacency[y] = replaceAt( adjacency[y], x,"D");
-                _falseCount++;
+            if( adjacency[y].charAt(x)== char ) {
+                _count++;
             }
         }
     }
-    
-    return _falseCount;
+    return _count;
 }
-
-function rightFlags() {
-    let _rightCount = 0;
-    for(let y = 0; y < rows; y++ ) {
-        for(let x = 0; x < cols; x++ ) {
-            if( adjacency[y].charAt(x)=="F" && field[y].charAt( x ) == "B") {
-                _rightCount++;
-            }
-        }
-    }
-    return _rightCount;
-}
-
-function countUnrevealed() {
-    let _unrevealedCount = 0;
-    for(let y = 0; y < rows; y++ ) {
-        for(let x = 0; x < cols; x++ ) {
-            if( adjacency[y].charAt(x)=="9" ) {
-                _unrevealedCount++;
-            }
-        }
-    }
-    return _unrevealedCount;
-}
-
 
 function adjacencyCell( y, x) {
     let _adjCount = 0;
 
-    for( let cy = -1; cy < 2; cy++) {
+    for( let cy = -1; cy < 2; cy++) {   //FIXME Identical ForcYcX
         for( let cx = -1; cx < 2; cx++) {
             if( field[y].charAt( x ) == "B") {  //KABOOM
                 _adjCount = "C";                
@@ -476,7 +471,7 @@ function clickCell( y, x ) {
         adjacency[y] = replaceAt( adjacency[y], x, _adj.toString());
         drawCanvasCell( y, x);
         if( _adj == 0 ) { //when finding empty continue opening path until finding cell that touches mine (has number)
-            for( let cy = -1; cy < 2; cy++) {
+            for( let cy = -1; cy < 2; cy++) {   //FIXME Identical ForcYcX
                 for( let cx = -1; cx < 2; cx++) {
                     if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                         if( x+cx >=0 && x+cx < cols ) {
@@ -494,7 +489,7 @@ function clickCell( y, x ) {
 
 function revealAround( y, x) {
     //Different from C# version, own flag function available, and test is made out of this function!
-    for( let cy = -1; cy < 2; cy++) {
+    for( let cy = -1; cy < 2; cy++) {   //FIXME Identical ForcYcX
         for( let cx = -1; cx < 2; cx++) {
             if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                 if( x+cx >=0 && x+cx < cols ) {
@@ -524,7 +519,7 @@ function flagCell( y , x ) {
 
 function countFlagsAround( y, x) {
     let _flagCount = 0;
-    for( let cy = -1; cy < 2; cy++) {
+    for( let cy = -1; cy < 2; cy++) {   //FIXME Identical ForcYcX
         for( let cx = -1; cx < 2; cx++) {
             if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                 if( x+cx >=0 && x+cx < cols ) {
@@ -538,7 +533,7 @@ function countFlagsAround( y, x) {
 
 function countBombsAround( y, x) {
     let _bombCount = 0;
-    for( let cy = -1; cy < 2; cy++) {
+    for( let cy = -1; cy < 2; cy++) {   //FIXME Identical ForcYcX
         for( let cx = -1; cx < 2; cx++) {
             if( y+cy >=0 && y+cy < rows) { //toimiva mutta, ehkä vähän vaikea lukuinen
                 if( x+cx >=0 && x+cx < cols ) {
@@ -572,7 +567,7 @@ function holdCellArea( _cellH ) {
     holdDown[_holdCount]= _cellH;
     holdCell( _cellH.y, _cellH.x );
     drawCanvasCell( _cellH.y, _cellH.x );
-    for( let dy=-1; dy<2; dy++) {
+    for( let dy=-1; dy<2; dy++) {   //FIXME Identical ForcYcX ?? verify this
         for( let dx=-1; dx<2; dx++) {
             if( _cellH.y+dy >= 0 && _cellH.y+dy < rows &&  _cellH.x+dx >=0 && _cellH.x+dx < cols ) {
                 if( holdCell( _cellH.y+dy, _cellH.x+dx )) {
@@ -610,7 +605,7 @@ function drawCanvasCell( y, x ) {
 }
 
 function drawCanvasField() {
-    for( let y = 0; y < rows; y++ ){
+    for( let y = 0; y < rows; y++ ){    //FIXME Identical ForYX
         for( let x = 0; x < cols; x++ ) {
             drawCanvasCell( y, x);
         }
@@ -791,7 +786,7 @@ function mouseUp(event) {
 function keyDown( event ) {
     //let _keycode = event.keyCode;
     //let _key = event.key;
-    if(event.key == "F2") {
+    if(event.key == "F2") { //TODO this is undocumented feature, requires previous knowledge or luck from user to try this out
         event.preventDefault();
         newGameBtn();
     }
